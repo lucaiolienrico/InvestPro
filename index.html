@@ -67,6 +67,13 @@
         input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: white; padding: 0.75rem; border-radius: 6px; font-size: 0.95rem; transition: var(--transition); font-family: inherit; }
         input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); }
         input.invalid { border-color: var(--danger) !important; animation: shake 0.3s; }
+        
+        /* Animazione Flash per aggiornamento automatico */
+        @keyframes flash-update { 
+            0% { background-color: var(--primary); box-shadow: 0 0 15px var(--primary); color: black; } 
+            100% { background-color: var(--bg-input); color: white; } 
+        }
+        .input-updated { animation: flash-update 2s cubic-bezier(0.22, 1, 0.36, 1); }
 
         .kpi-container { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
         .kpi-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
@@ -186,7 +193,10 @@
 
                 <div class="input-grid">
                     <div class="form-group"><label>ADR Medio (€)</label><input type="number" id="adr" value="120" oninput="app.calc.debouncedUpdate()"></div>
-                    <div class="form-group"><label>Tassa Soggiorno (€)</label><input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group">
+                        <label>Tassa Soggiorno (€)</label>
+                        <input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()" style="transition: background-color 0.3s;">
+                    </div>
                 </div>
                 <div class="input-grid">
                     <div class="form-group"><label>Commissioni OTA (%)</label><input type="number" id="portal-comm" value="18" oninput="app.calc.debouncedUpdate()"></div>
@@ -432,7 +442,7 @@
                 }
             },
 
-            // --- NUOVO MODULO: GEOLOCALIZZAZIONE GRATUITA ---
+            // --- GEO SEARCH (HARDENED LOGIC) ---
             geo: {
                 search: async (query) => {
                     if (query.length < 3) return;
@@ -441,7 +451,6 @@
                     app.ui.toggleElement('geo-results', true);
 
                     try {
-                        // Nominatim API (OpenStreetMap)
                         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5&countrycodes=it`;
                         const res = await fetch(url, { headers: { 'User-Agent': 'InvestPro-App' } });
                         const data = await res.json();
@@ -455,24 +464,53 @@
                         data.forEach(item => {
                             const div = document.createElement('div');
                             div.className = 'dropdown-item';
-                            // Formattazione Indirizzo
-                            const city = item.address.city || item.address.town || item.address.village || '';
+                            
+                            // Visualizzazione User Friendly
+                            const city = item.address.city || item.address.town || item.address.village || item.address.municipality || '';
                             const road = item.address.road || '';
                             const number = item.address.house_number || '';
-                            const label = `${road} ${number}, ${city}`;
-                            div.textContent = label.trim() !== ',' ? label : item.display_name.split(',').slice(0,3).join(',');
+                            let label = `${road} ${number}, ${city}`;
+                            if(label.trim() === ',') label = item.display_name.split(',').slice(0,3).join(',');
+                            div.textContent = label;
                             
                             div.onclick = () => {
                                 document.getElementById('geo-search').value = div.textContent;
                                 app.ui.toggleElement('geo-results', false);
                                 
-                                // LOGICA SMART: Aggiorna Tassa Soggiorno in base alla città
-                                const cityLower = city.toLowerCase();
+                                // --- LOGICA ROBUSTA "NO FALSE POSITIVES" ---
+                                // 1. Crea una lista di soli campi geografici "contenitore" (Città, Comune, Provincia)
+                                // 2. ESCLUDE esplicitamente via, strada, numero civico per evitare "Via Roma, Torino" -> "Roma"
+                                const addr = item.address || {};
+                                const locationFields = [
+                                    addr.city, 
+                                    addr.town, 
+                                    addr.village, 
+                                    addr.municipality,
+                                    addr.county, 
+                                    addr.state_district
+                                ].map(field => (field || '').toLowerCase());
+
+                                // Funzione helper per cercare nei campi validi
+                                const isCity = (target) => locationFields.some(field => field.includes(target));
+
                                 const taxInput = document.getElementById('city-tax');
-                                if(cityLower.includes('milano')) { taxInput.value = 4.5; app.ui.showToast('Tassa impostata per Milano'); }
-                                else if(cityLower.includes('roma')) { taxInput.value = 6.0; app.ui.showToast('Tassa impostata per Roma'); }
-                                else if(cityLower.includes('firenze')) { taxInput.value = 5.5; app.ui.showToast('Tassa impostata per Firenze'); }
-                                
+                                let newVal = null;
+
+                                if(isCity('milano')) newVal = 4.5;
+                                else if(isCity('roma')) newVal = 6.0;
+                                else if(isCity('firenze')) newVal = 5.5;
+                                else if(isCity('napoli')) newVal = 3.0;
+                                else if(isCity('venezia')) newVal = 5.0;
+
+                                if(newVal !== null) {
+                                    taxInput.value = newVal;
+                                    app.ui.showToast(`Tassa aggiornata automaticamente!`, 'success');
+                                    // Feedback Visivo
+                                    taxInput.classList.remove('input-updated');
+                                    void taxInput.offsetWidth; 
+                                    taxInput.classList.add('input-updated');
+                                }
+
                                 app.calc.update();
                             };
                             list.appendChild(div);
@@ -485,7 +523,7 @@
                 debouncedSearch: null 
             },
 
-            // --- NUOVO MODULO: CHART.JS ---
+            // --- CHART.JS MODULE ---
             chart: {
                 init: () => {
                     const ctx = document.getElementById('profitChart').getContext('2d');
@@ -520,7 +558,7 @@
                 },
                 update: (rev, ota, taxes, costs, net) => {
                     if (!state.chartInstance) return;
-                    const netVisual = net < 0 ? 0 : net; // Evita glitch grafici con numeri negativi
+                    const netVisual = net < 0 ? 0 : net; 
                     state.chartInstance.data.datasets[0].data = [netVisual, ota, taxes, costs];
                     state.chartInstance.update();
                 }
@@ -534,31 +572,25 @@
                     const adr = c.getVal('adr');
                     const occPerc = c.getVal('occ') / 100;
                     const nights = 365 * occPerc;
-                    const totalRev = adr * nights; // Ricavo Lordo Annuo
+                    const totalRev = adr * nights; 
 
-                    // Calcolo Voci di Costo (Annuali)
                     const otaCost = totalRev * (c.getVal('portal-comm') / 100);
-                    // Tassa soggiorno è extra ADR solitamente, ma qui la semplifichiamo come costo se inclusa o costo passante
-                    // Per purezza, calcoliamo le tasse sul reddito:
-                    const taxableBase = totalRev * (1 - (c.getVal('portal-comm')/100)); // Base imponibile approx
+                    const taxableBase = totalRev * (1 - (c.getVal('portal-comm')/100)); 
                     const taxCost = taxableBase * (c.getVal('tax-rate') / 100);
                     
                     const varCostsTotal = c.getVal('var-costs') * nights;
                     const fixedCostsTotal = c.getVal('fixed-costs') * 12;
-                    const operatingCosts = varCostsTotal + fixedCostsTotal + (c.getVal('city-tax') * nights); // Aggiungiamo city tax ai costi operativi
+                    const operatingCosts = varCostsTotal + fixedCostsTotal + (c.getVal('city-tax') * nights); 
 
                     const netAnnual = totalRev - otaCost - taxCost - operatingCosts;
                     const molMonthly = netAnnual / 12;
-                    const netNight = netAnnual / nights; // Utile medio a notte venduta
+                    const netNight = netAnnual / nights;
 
-                    // Update UI
                     document.getElementById('res-mol-month').textContent = c.format(molMonthly);
                     document.getElementById('res-net-night').textContent = isFinite(netNight) ? c.format(netNight) : "0 €";
 
-                    // Update Chart
                     app.chart.update(totalRev, otaCost, taxCost, operatingCosts, netAnnual);
 
-                    // Calcolo PRO (Mutuo)
                     const loan = c.getVal('price') * (c.getVal('ltv')/100);
                     const i = (c.getVal('rate')/100)/12, n = c.getVal('years')*12;
                     let m = 0;
@@ -613,7 +645,6 @@
                     
                     const inputs = {};
                     Object.keys(VALIDATION).forEach(k => inputs[k] = document.getElementById(k).value);
-                    // Aggiungi indirizzo ai dati salvati
                     inputs['geo-search'] = document.getElementById('geo-search').value;
 
                     const payload = { uid: state.user.uid, name: document.getElementById('project-name').value, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), inputs };
@@ -651,6 +682,7 @@
                             state.currentDocId = d.id;
                             document.getElementById('project-name').value = d.name;
                             Object.keys(d.inputs).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = d.inputs[k]; });
+                            if(d.inputs['geo-search']) document.getElementById('geo-search').value = d.inputs['geo-search'];
                             app.calc.update();
                             app.ui.closeModal('modal-deals');
                         };
