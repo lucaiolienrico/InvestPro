@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InvestPro | Analisi Immobiliare & Compliance GDPR</title>
+    <meta name="description" content="Piattaforma professionale per analisi investimenti immobiliari con calcolo ROI, Cashflow e Mutuo.">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" defer></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
     <style>
         /* --- CORE VARIABLES & RESET --- */
@@ -30,14 +31,17 @@
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5; overflow-x: hidden; }
 
-        /* --- UI COMPONENTS --- */
+        /* ACCESSABILITY & FOCUS */
+        :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+        /* UI COMPONENTS */
         header { background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px); }
         .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; user-select: none; }
         .logo span { color: white; letter-spacing: -0.02em; }
         .user-menu { display: flex; align-items: center; gap: 1rem; }
 
-        .btn { padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border); background: var(--bg-card); color: white; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition); user-select: none; }
+        .btn { padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border); background: var(--bg-card); color: white; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition); user-select: none; text-decoration: none; }
         .btn:hover { background: var(--border); transform: translateY(-1px); }
         .btn:active { transform: translateY(0); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: grayscale(1); }
@@ -68,7 +72,6 @@
         input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); }
         input.invalid { border-color: var(--danger) !important; animation: shake 0.3s; }
         
-        /* Animazione Flash per aggiornamento automatico */
         @keyframes flash-update { 
             0% { background-color: var(--primary); box-shadow: 0 0 15px var(--primary); color: black; } 
             100% { background-color: var(--bg-input); color: white; } 
@@ -82,18 +85,15 @@
         .locked-blur { filter: blur(6px); pointer-events: none; opacity: 0.5; transition: var(--transition); }
         .overlay-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; opacity: 1; transition: opacity 0.5s ease; text-align: center; border-radius: 12px; }
         .is-unlocked .locked-blur { filter: none; pointer-events: auto; opacity: 1; }
-        .is-unlocked .overlay-lock { opacity: 0; pointer-events: none; visibility: hidden; }
+        .is-unlocked .overlay-lock { display: none; } /* Better than opacity 0 for accessability */
 
-        /* CHART CONTAINER */
         .chart-wrapper { margin-top: 1.5rem; position: relative; height: 250px; width: 100%; }
 
-        /* DROPDOWN RICERCA GEO */
         .dropdown-menu { position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 0 8px 8px; z-index: 100; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
         .dropdown-item { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-muted); transition: all 0.2s; }
-        .dropdown-item:hover { background: var(--primary); color: black; font-weight: 600; }
+        .dropdown-item:hover, .dropdown-item:focus { background: var(--primary); color: black; font-weight: 600; outline: none; }
         .dropdown-item:last-child { border-bottom: none; }
 
-        /* REVIEWS & CONTACT */
         .reviews-section { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
         .reviews-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: white; }
         .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
@@ -112,7 +112,6 @@
         .checkbox-wrapper input { width: auto; margin-top: 3px; cursor: pointer; }
         .privacy-link { color: var(--primary); text-decoration: underline; cursor: pointer; }
 
-        /* OVERLAYS & MODALS */
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #loading-overlay.active { opacity: 1; pointer-events: auto; }
         .spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-bottom-color: var(--primary); border-radius: 50%; animation: rotation 1s linear infinite; margin-bottom: 1rem; }
@@ -129,7 +128,6 @@
         .modal-panel { background: var(--bg-card); border: 1px solid var(--border); width: 90%; max-width: 550px; border-radius: 12px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s; max-height: 85vh; overflow-y: auto; }
         .modal-backdrop.active .modal-panel { transform: translateY(0); }
         
-        /* ADMIN UI */
         .admin-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
         .admin-tab { padding: 0.8rem 1.5rem; cursor: pointer; color: var(--text-muted); font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.2s; flex: 1; text-align: center; }
         .admin-tab.active { color: var(--warning); border-bottom-color: var(--warning); }
@@ -149,20 +147,21 @@
 </head>
 <body>
 
-    <div id="loading-overlay">
+    <div id="loading-overlay" role="status" aria-label="Caricamento in corso">
         <div class="spinner"></div>
         <p style="color: white; font-weight: 600;">Elaborazione in corso...</p>
     </div>
-    <div id="toast-container"></div>
+    
+    <div id="toast-container" role="alert" aria-live="assertive"></div>
 
     <header>
         <div class="nav-container">
-            <div class="logo"><i class="fa-solid fa-building-columns"></i> <span>InvestPro</span></div>
+            <div class="logo"><i class="fa-solid fa-building-columns" aria-hidden="true"></i> <span>InvestPro</span></div>
             <div class="user-menu">
                 <div id="auth-guest"><button class="btn btn-primary" onclick="app.ui.openModal('modal-login')"><i class="fa-solid fa-user"></i> Accedi</button></div>
                 <div id="auth-user" class="hidden">
                     <span id="badge-plan" class="plan-badge">FREE</span>
-                    <span id="user-email-display" style="display:none; @media(min-width:768px){display:inline;} font-size: 0.85rem;"></span>
+                    <span id="user-email-display" style="font-size: 0.85rem; margin-right:10px;"></span>
                     <button class="btn" onclick="app.auth.logout()" title="Logout" style="padding: 0.5rem;"><i class="fa-solid fa-right-from-bracket"></i></button>
                 </div>
             </div>
@@ -170,7 +169,7 @@
     </header>
 
     <section class="toolbar">
-        <input type="text" id="project-name" class="project-input" value="Nuova Analisi..." placeholder="Nome del Deal">
+        <input type="text" id="project-name" class="project-input" value="Nuova Analisi..." placeholder="Nome del Deal" aria-label="Nome del progetto">
         <div style="display: flex; gap: 0.75rem;">
             <button class="btn" onclick="app.data.openDealsList()"><i class="fa-solid fa-folder-open"></i> Deal</button>
             <button class="btn btn-primary" onclick="app.data.saveProject()"><i class="fa-regular fa-floppy-disk"></i> Salva</button>
@@ -183,42 +182,39 @@
                 <div class="card-header"><div class="step-circle">A</div><h3>Conto Economico</h3></div>
                 
                 <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
-                    <label>Indirizzo Immobile (Ricerca Smart)</label>
+                    <label for="geo-search">Indirizzo Immobile (Ricerca Smart)</label>
                     <div style="position: relative;">
                         <input type="text" id="geo-search" placeholder="Es. Via Roma 10, Milano" autocomplete="off" style="padding-right: 40px;">
-                        <i class="fa-solid fa-magnifying-glass" style="position: absolute; right: 12px; top: 12px; color: var(--text-muted); pointer-events: none;"></i>
+                        <i class="fa-solid fa-magnifying-glass" style="position: absolute; right: 12px; top: 12px; color: var(--text-muted); pointer-events: none;" aria-hidden="true"></i>
                     </div>
-                    <div id="geo-results" class="dropdown-menu hidden"></div>
+                    <div id="geo-results" class="dropdown-menu hidden" role="listbox"></div>
                 </div>
 
                 <div class="input-grid">
-                    <div class="form-group"><label>ADR Medio (€)</label><input type="number" id="adr" value="120" oninput="app.calc.debouncedUpdate()"></div>
-                    <div class="form-group">
-                        <label>Tassa Soggiorno (€)</label>
-                        <input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()" style="transition: background-color 0.3s;">
-                    </div>
+                    <div class="form-group"><label for="adr">ADR Medio (€)</label><input type="number" id="adr" value="120" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group"><label for="city-tax">Tassa Soggiorno (€)</label><input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()" style="transition: background-color 0.3s;"></div>
                 </div>
                 <div class="input-grid">
-                    <div class="form-group"><label>Commissioni OTA (%)</label><input type="number" id="portal-comm" value="18" oninput="app.calc.debouncedUpdate()"></div>
-                    <div class="form-group"><label>Cedolare / Tasse (%)</label><input type="number" id="tax-rate" value="21" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group"><label for="portal-comm">Commissioni OTA (%)</label><input type="number" id="portal-comm" value="18" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group"><label for="tax-rate">Cedolare / Tasse (%)</label><input type="number" id="tax-rate" value="21" oninput="app.calc.debouncedUpdate()"></div>
                 </div>
                 <div class="input-grid">
-                    <div class="form-group"><label>Costi Var. Notte (€)</label><input type="number" id="var-costs" value="15" oninput="app.calc.debouncedUpdate()"></div>
-                    <div class="form-group"><label>Occupazione (%)</label><input type="number" id="occ" value="65" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group"><label for="var-costs">Costi Var. Notte (€)</label><input type="number" id="var-costs" value="15" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group"><label for="occ">Occupazione (%)</label><input type="number" id="occ" value="65" oninput="app.calc.debouncedUpdate()"></div>
                 </div>
-                <div class="form-group" style="margin-bottom: 1rem;"><label>Costi Fissi Mensili (€)</label><input type="number" id="fixed-costs" value="600" oninput="app.calc.debouncedUpdate()"></div>
+                <div class="form-group" style="margin-bottom: 1rem;"><label for="fixed-costs">Costi Fissi Mensili (€)</label><input type="number" id="fixed-costs" value="600" oninput="app.calc.debouncedUpdate()"></div>
                 
                 <div class="kpi-container" style="margin-bottom: 0.5rem;"><span class="kpi-title">UTILE NETTO A NOTTE</span><span class="kpi-value" id="res-net-night">-- €</span></div>
                 <div class="kpi-container" style="border-color: var(--primary); background: rgba(16, 185, 129, 0.1);"><span class="kpi-title">MOL MENSILE</span><span class="kpi-value" id="res-mol-month">-- €</span></div>
 
                 <div class="chart-wrapper">
-                    <canvas id="profitChart"></canvas>
+                    <canvas id="profitChart" aria-label="Grafico a ciambella della distribuzione dei costi e utili" role="img"></canvas>
                 </div>
             </div>
 
             <div class="card" id="card-pro">
                 <div class="overlay-lock">
-                    <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;" aria-hidden="true"></i>
                     <h3>Funzionalità PRO</h3>
                     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Sblocca calcolo Mutuo, ROI e Cash Flow.</p>
                     <button class="btn btn-primary" onclick="app.payment.start()">Sblocca Ora (9,90€)</button>
@@ -226,16 +222,16 @@
                 </div>
                 <div class="card-header"><div class="step-circle" style="background: white;">B</div><h3>Finanziario & Mutuo</h3></div>
                 <div class="locked-blur">
-                    <div class="form-group" style="margin-bottom: 1.25rem;"><label>Prezzo Acquisto (€)</label><input type="number" id="price" value="250000" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group" style="margin-bottom: 1.25rem;"><label for="price">Prezzo Acquisto (€)</label><input type="number" id="price" value="250000" oninput="app.calc.debouncedUpdate()"></div>
                     <div class="input-grid">
-                        <div class="form-group"><label>Ristrutturazione (€)</label><input type="number" id="reno" value="15000" oninput="app.calc.debouncedUpdate()"></div>
-                        <div class="form-group"><label>Spese Notaio (€)</label><input type="number" id="closing" value="10000" oninput="app.calc.debouncedUpdate()"></div>
+                        <div class="form-group"><label for="reno">Ristrutturazione (€)</label><input type="number" id="reno" value="15000" oninput="app.calc.debouncedUpdate()"></div>
+                        <div class="form-group"><label for="closing">Spese Notaio (€)</label><input type="number" id="closing" value="10000" oninput="app.calc.debouncedUpdate()"></div>
                     </div>
                     <div class="input-grid">
-                        <div class="form-group"><label>LTV Mutuo (%)</label><input type="number" id="ltv" value="80" oninput="app.calc.debouncedUpdate()"></div>
-                        <div class="form-group"><label>Tasso Interesse (%)</label><input type="number" id="rate" value="4.0" step="0.1" oninput="app.calc.debouncedUpdate()"></div>
+                        <div class="form-group"><label for="ltv">LTV Mutuo (%)</label><input type="number" id="ltv" value="80" oninput="app.calc.debouncedUpdate()"></div>
+                        <div class="form-group"><label for="rate">Tasso Interesse (%)</label><input type="number" id="rate" value="4.0" step="0.1" oninput="app.calc.debouncedUpdate()"></div>
                     </div>
-                    <div class="form-group" style="margin-bottom: 1.5rem;"><label>Durata Mutuo (Anni)</label><input type="number" id="years" value="20" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;"><label for="years">Durata Mutuo (Anni)</label><input type="number" id="years" value="20" oninput="app.calc.debouncedUpdate()"></div>
                     <div class="kpi-container" style="margin-bottom: 1rem;"><span class="kpi-title">RATA MUTUO</span><span class="kpi-value" id="res-mortgage">-- €</span></div>
                     <div class="kpi-container" style="background: var(--primary); border: none;"><span class="kpi-title" style="color: black;">CASH FLOW NETTO</span><span class="kpi-value" id="res-cashflow" style="color: black;">-- €</span></div>
                 </div>
@@ -245,10 +241,10 @@
         <section class="reviews-section">
             <h2 class="reviews-title">Cosa dicono i professionisti</h2>
             <div class="reviews-grid">
-                <div class="review-card"><div class="review-header"><div class="review-avatar">M</div><div><h4>Marco Miceli</h4><p>Investitore Immobiliare</p></div></div><div class="stars">★★★★★</div><p class="review-text">"Uno strumento indispensabile. Prima perdevo ore su Excel, ora in 5 minuti ho un Business Plan pronto per la banca."</p></div>
-                <div class="review-card"><div class="review-header"><div class="review-avatar">G</div><div><h4>Giulia Loruso</h4><p>Property Manager</p></div></div><div class="stars">★★★★★</div><p class="review-text">"Interfaccia pulita e calcoli precisissimi. Il calcolo automatico della rata mutuo e del cash flow netto è un game changer."</p></div>
-                <div class="review-card"><div class="review-header"><div class="review-avatar">A</div><div><h4>Alessandro C.</h4><p>Architetto</p></div></div><div class="stars">★★★★☆</div><p class="review-text">"Ottimo per valutare velocemente la fattibilità di un'operazione di ristrutturazione e messa a reddito. Consigliato!"</p></div>
-                <div class="review-card"><div class="review-header"><div class="review-avatar">S</div><div><h4>Sofia Bruni</h4><p>Consulente Finanziario</p></div></div><div class="stars">★★★★★</div><p class="review-text">"Finalmente un tool web-based serio. La possibilità di salvare e confrontare diversi scenari è fondamentale per il mio lavoro."</p></div>
+                <div class="review-card"><div class="review-header"><div class="review-avatar">M</div><div><h4>Marco Miceli</h4><p>Investitore Immobiliare</p></div></div><div class="stars" aria-label="5 stelle">★★★★★</div><p class="review-text">"Uno strumento indispensabile. Prima perdevo ore su Excel, ora in 5 minuti ho un Business Plan pronto per la banca."</p></div>
+                <div class="review-card"><div class="review-header"><div class="review-avatar">G</div><div><h4>Giulia Loruso</h4><p>Property Manager</p></div></div><div class="stars" aria-label="5 stelle">★★★★★</div><p class="review-text">"Interfaccia pulita e calcoli precisissimi. Il calcolo automatico della rata mutuo e del cash flow netto è un game changer."</p></div>
+                <div class="review-card"><div class="review-header"><div class="review-avatar">A</div><div><h4>Alessandro C.</h4><p>Architetto</p></div></div><div class="stars" aria-label="4 stelle">★★★★☆</div><p class="review-text">"Ottimo per valutare velocemente la fattibilità di un'operazione di ristrutturazione e messa a reddito. Consigliato!"</p></div>
+                <div class="review-card"><div class="review-header"><div class="review-avatar">S</div><div><h4>Sofia Bruni</h4><p>Consulente Finanziario</p></div></div><div class="stars" aria-label="5 stelle">★★★★★</div><p class="review-text">"Finalmente un tool web-based serio. La possibilità di salvare e confrontare diversi scenari è fondamentale per il mio lavoro."</p></div>
             </div>
         </section>
 
@@ -256,26 +252,26 @@
             <h2 class="contact-title">Contattaci</h2>
             <form class="contact-form" onsubmit="event.preventDefault(); app.contact.submit();">
                 <div class="form-group">
-                    <label>Nome *</label>
-                    <input type="text" id="contact-name" required placeholder="Mario">
+                    <label for="contact-name">Nome *</label>
+                    <input type="text" id="contact-name" name="name" required placeholder="Mario">
                 </div>
                 <div class="form-group">
-                    <label>Cognome *</label>
-                    <input type="text" id="contact-surname" required placeholder="Rossi">
+                    <label for="contact-surname">Cognome *</label>
+                    <input type="text" id="contact-surname" name="surname" required placeholder="Rossi">
                 </div>
                 <div class="form-group">
-                    <label>Numero di Cellulare</label>
-                    <input type="tel" id="contact-phone" placeholder="+39 333 1234567">
+                    <label for="contact-phone">Numero di Cellulare</label>
+                    <input type="tel" id="contact-phone" name="phone" placeholder="+39 333 1234567">
                 </div>
                 <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" id="contact-email" required placeholder="email@esempio.it">
+                    <label for="contact-email">Email *</label>
+                    <input type="email" id="contact-email" name="email" required placeholder="email@esempio.it">
                 </div>
                 <div class="form-group full-width">
                     <div class="checkbox-wrapper">
                         <input type="checkbox" id="contact-consent" required>
                         <label for="contact-consent" style="text-transform: none; font-weight: 400; font-size: 0.85rem;">
-                            Dichiaro di aver letto e compreso l'<span class="privacy-link" onclick="app.ui.openModal('modal-privacy')">Informativa sulla Privacy</span> e acconsento al trattamento dei miei dati personali ai sensi del Reg. UE 2016/679 (GDPR) e D.Lgs. 196/2003. *
+                            Dichiaro di aver letto e compreso l'<span class="privacy-link" onclick="app.ui.openModal('modal-privacy')" role="button" tabindex="0">Informativa sulla Privacy</span> e acconsento al trattamento dei miei dati personali ai sensi del Reg. UE 2016/679 (GDPR) e D.Lgs. 196/2003. *
                         </label>
                     </div>
                 </div>
@@ -287,11 +283,11 @@
 
     </main>
 
-    <button id="admin-trigger" class="btn btn-admin hidden" onclick="app.ui.openModal('modal-admin')"><i class="fa-solid fa-shield-halved"></i> ADMIN</button>
+    <button id="admin-trigger" class="btn btn-admin hidden" onclick="app.ui.openModal('modal-admin')"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> ADMIN</button>
 
-    <div id="modal-privacy" class="modal-backdrop">
+    <div id="modal-privacy" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
         <div class="modal-panel">
-            <h2 style="margin-bottom: 1rem; color: var(--text-main);">Informativa Privacy</h2>
+            <h2 id="privacy-title" style="margin-bottom: 1rem; color: var(--text-main);">Informativa Privacy</h2>
             <div class="legal-text" style="max-height: 60vh; overflow-y: auto; padding-right: 10px;">
                 <p><strong>Informativa ai sensi degli artt. 13 e 14 del Regolamento (UE) 2016/679 (GDPR)</strong></p>
                 <h3>1. Titolare del Trattamento</h3>
@@ -303,50 +299,50 @@
         </div>
     </div>
 
-    <div id="modal-login" class="modal-backdrop">
+    <div id="modal-login" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="login-title">
         <div class="modal-panel" style="text-align: center;">
-            <h2 style="margin-bottom: 1.5rem;">Accedi a InvestPro</h2>
+            <h2 id="login-title" style="margin-bottom: 1.5rem;">Accedi a InvestPro</h2>
             <button class="btn" style="width: 100%; justify-content: center; background: white; color: black; border: 1px solid #ccc; padding: 0.8rem;" onclick="app.auth.loginGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Continua con Google
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google Logo"> Continua con Google
             </button>
             <button class="btn btn-danger" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="app.ui.closeModal('modal-login')">Annulla</button>
         </div>
     </div>
 
-    <div id="modal-deals" class="modal-backdrop">
+    <div id="modal-deals" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deals-title">
         <div class="modal-panel">
-            <h2 style="margin-bottom: 1rem;">I Miei Deal</h2>
+            <h2 id="deals-title" style="margin-bottom: 1rem;">I Miei Deal</h2>
             <div id="deals-container" class="deal-list"><p style="text-align: center; color: var(--text-muted);">Caricamento...</p></div>
             <button class="btn" style="width: 100%; margin-top: 1.5rem; justify-content: center;" onclick="app.ui.closeModal('modal-deals')">Chiudi</button>
         </div>
     </div>
 
-    <div id="modal-admin" class="modal-backdrop">
+    <div id="modal-admin" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="admin-title">
         <div class="modal-panel" style="max-width: 700px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                <h2 style="color: var(--warning);"><i class="fa-solid fa-shield-halved"></i> Pannello Admin</h2>
-                <button class="btn" onclick="app.ui.closeModal('modal-admin')"><i class="fa-solid fa-xmark"></i></button>
+                <h2 id="admin-title" style="color: var(--warning);"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Pannello Admin</h2>
+                <button class="btn" onclick="app.ui.closeModal('modal-admin')" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="admin-tabs">
-                <div class="admin-tab active" onclick="app.admin.switchTab('personal')">Personale</div>
-                <div class="admin-tab" onclick="app.admin.switchTab('stats')">Statistiche</div>
-                <div class="admin-tab" onclick="app.admin.switchTab('users')">Utenti</div>
+            <div class="admin-tabs" role="tablist">
+                <div class="admin-tab active" role="tab" tabindex="0" onclick="app.admin.switchTab('personal')">Personale</div>
+                <div class="admin-tab" role="tab" tabindex="0" onclick="app.admin.switchTab('stats')">Statistiche</div>
+                <div class="admin-tab" role="tab" tabindex="0" onclick="app.admin.switchTab('users')">Utenti</div>
             </div>
-            <div id="tab-personal" class="admin-content active">
+            <div id="tab-personal" class="admin-content active" role="tabpanel">
                 <p style="margin-bottom:1rem; color:var(--text-muted);">Gestione stato admin per test.</p>
                 <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
                     <button class="btn btn-primary" onclick="app.admin.toggleMyPlan()">Toggle Mio Piano</button>
                     <button class="btn btn-danger" onclick="app.admin.clearMyData()">Wipe Dati</button>
                 </div>
             </div>
-            <div id="tab-stats" class="admin-content">
+            <div id="tab-stats" class="admin-content" role="tabpanel">
                 <div class="stat-grid">
                     <div class="stat-card"><span class="stat-num" id="stat-users">0</span><span class="stat-label">Utenti</span></div>
                     <div class="stat-card"><span class="stat-num" id="stat-pro">0</span><span class="stat-label">PRO</span></div>
                 </div>
                 <button class="btn" onclick="app.admin.refreshStats()" style="width:100%; justify-content:center;">Aggiorna</button>
             </div>
-            <div id="tab-users" class="admin-content">
+            <div id="tab-users" class="admin-content" role="tabpanel">
                 <div id="admin-users-list" class="user-list">Caricamento...</div>
             </div>
         </div>
@@ -369,13 +365,18 @@
         };
 
         // --- 2. INIZIALIZZAZIONE FIREBASE ---
-        if (!firebase.apps.length) {
-            try { firebase.initializeApp(CONFIG.firebase); console.log("Firebase Init OK"); } 
-            catch (e) { console.error("Firebase Init Error", e); }
-        }
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        db.enablePersistence().catch(err => console.log("Persistence disabled:", err.code));
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof firebase === 'undefined') {
+                console.error("Firebase SDK not loaded correctly.");
+                return;
+            }
+            if (!firebase.apps.length) {
+                try { firebase.initializeApp(CONFIG.firebase); console.log("Firebase Init OK"); } 
+                catch (e) { console.error("Firebase Init Error", e); }
+            }
+            // Avvio App solo dopo il load del DOM
+            app.init();
+        });
 
         // --- 3. VALIDAZIONE & STATO ---
         const VALIDATION = {
@@ -395,6 +396,35 @@
         };
 
         const app = {
+            init: () => {
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                db.enablePersistence().catch(err => console.log("Persistence disabled:", err.code));
+                
+                // Binding Contexts
+                app.services.auth = auth;
+                app.services.db = db;
+
+                app.auth.init();
+                app.validate.bind();
+                app.chart.init(); 
+                app.calc.update();
+                
+                // Listeners Geo
+                const geoInput = document.getElementById('geo-search');
+                if(geoInput) geoInput.addEventListener('input', (e) => app.geo.debouncedSearch(e.target.value));
+                
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#geo-search') && !e.target.closest('#geo-results')) {
+                        app.ui.toggleElement('geo-results', false);
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => { if(e.key==='Escape') document.querySelectorAll('.modal-backdrop').forEach(m=>m.classList.remove('active')); });
+            },
+
+            services: { auth: null, db: null },
+
             utils: {
                 debounce: (func, wait) => {
                     let timeout;
@@ -409,18 +439,22 @@
                         if (e.code === 'permission-denied') msg = "Accesso negato o permessi insufficienti.";
                         app.ui.showToast(msg, 'error');
                     } finally { app.ui.setLoading(false); }
+                },
+                escapeHTML: (str) => {
+                    if(!str) return '';
+                    return str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag]));
                 }
             },
 
             ui: {
                 toggleElement: (id, show) => { const el = document.getElementById(id); if(el) el.classList.toggle('hidden', !show); },
-                openModal: (id) => { document.getElementById(id).classList.add('active'); },
-                closeModal: (id) => document.getElementById(id).classList.remove('active'),
-                setLoading: (show) => document.getElementById('loading-overlay').classList.toggle('active', show),
+                openModal: (id) => { const el = document.getElementById(id); if(el) el.classList.add('active'); },
+                closeModal: (id) => { const el = document.getElementById(id); if(el) el.classList.remove('active'); },
+                setLoading: (show) => { const el = document.getElementById('loading-overlay'); if(el) el.classList.toggle('active', show); },
                 showToast: (msg, type = 'info') => {
                     const t = document.createElement('div');
                     t.className = `toast ${type}`;
-                    t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':type==='success'?'fa-check-circle':'fa-info-circle'}"></i><span>${msg}</span>`;
+                    t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':type==='success'?'fa-check-circle':'fa-info-circle'}"></i><span>${app.utils.escapeHTML(msg)}</span>`;
                     document.getElementById('toast-container').appendChild(t);
                     setTimeout(() => t.classList.add('show'), 10);
                     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300) }, 3000);
@@ -430,7 +464,8 @@
                     app.ui.toggleElement('auth-guest', !u);
                     app.ui.toggleElement('auth-user', !!u);
                     if(u) {
-                        document.getElementById('user-email-display').textContent = u.email;
+                        const emailDisplay = document.getElementById('user-email-display');
+                        if(emailDisplay) emailDisplay.textContent = u.email;
                         app.ui.toggleElement('admin-trigger', u.email === CONFIG.adminEmail);
                     }
                 },
@@ -442,7 +477,32 @@
                 }
             },
 
-            // --- GEO SEARCH (HARDENED LOGIC) ---
+            validate: {
+                checkField: (id) => {
+                    const el = document.getElementById(id);
+                    if (!el || el.value === '') return true;
+                    const val = parseFloat(el.value);
+                    const rule = VALIDATION[id];
+                    if (!rule) return true;
+                    const isValid = !isNaN(val) && val >= rule.min && val <= rule.max;
+                    el.classList.toggle('invalid', !isValid);
+                    return isValid;
+                },
+                all: () => {
+                    let valid = true;
+                    Object.keys(VALIDATION).forEach(k => {
+                        const el = document.getElementById(k);
+                        if (el && (el.value === '' || !app.validate.checkField(k))) {
+                            el.classList.add('invalid');
+                            valid = false;
+                        }
+                    });
+                    if (!valid) app.ui.showToast("Controlla i campi evidenziati in rosso.", 'error');
+                    return valid;
+                },
+                bind: () => document.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('blur', () => app.validate.checkField(i.id)))
+            },
+
             geo: {
                 search: async (query) => {
                     if (query.length < 3) return;
@@ -464,8 +524,10 @@
                         data.forEach(item => {
                             const div = document.createElement('div');
                             div.className = 'dropdown-item';
+                            div.setAttribute('role', 'option');
+                            div.setAttribute('tabindex', '0'); // Tastiera accessibile
                             
-                            // Visualizzazione User Friendly
+                            // Safe Text Content assignment (NO innerHTML)
                             const city = item.address.city || item.address.town || item.address.village || item.address.municipality || '';
                             const road = item.address.road || '';
                             const number = item.address.house_number || '';
@@ -477,40 +539,35 @@
                                 document.getElementById('geo-search').value = div.textContent;
                                 app.ui.toggleElement('geo-results', false);
                                 
-                                // --- LOGICA ROBUSTA "NO FALSE POSITIVES" ---
-                                // 1. Crea una lista di soli campi geografici "contenitore" (Città, Comune, Provincia)
-                                // 2. ESCLUDE esplicitamente via, strada, numero civico per evitare "Via Roma, Torino" -> "Roma"
-                                const addr = item.address || {};
-                                const locationFields = [
-                                    addr.city, 
-                                    addr.town, 
-                                    addr.village, 
-                                    addr.municipality,
-                                    addr.county, 
-                                    addr.state_district
-                                ].map(field => (field || '').toLowerCase());
+                                const CITY_RATES = {
+                                    'milano': 4.5, 'roma': 6.0, 'firenze': 5.5, 'venezia': 5.0,
+                                    'napoli': 3.0, 'torino': 2.8, 'bologna': 3.0, 'rimini': 2.5,
+                                    'verona': 3.5, 'palermo': 2.0
+                                };
 
-                                // Funzione helper per cercare nei campi validi
-                                const isCity = (target) => locationFields.some(field => field.includes(target));
+                                let foundRate = null;
+                                let foundCityName = "";
+                                const addressText = (item.address.city || item.address.town || item.address.village || item.address.municipality || item.display_name).toLowerCase();
 
-                                const taxInput = document.getElementById('city-tax');
-                                let newVal = null;
-
-                                if(isCity('milano')) newVal = 4.5;
-                                else if(isCity('roma')) newVal = 6.0;
-                                else if(isCity('firenze')) newVal = 5.5;
-                                else if(isCity('napoli')) newVal = 3.0;
-                                else if(isCity('venezia')) newVal = 5.0;
-
-                                if(newVal !== null) {
-                                    taxInput.value = newVal;
-                                    app.ui.showToast(`Tassa aggiornata automaticamente!`, 'success');
-                                    // Feedback Visivo
-                                    taxInput.classList.remove('input-updated');
-                                    void taxInput.offsetWidth; 
-                                    taxInput.classList.add('input-updated');
+                                for (const [cityName, rate] of Object.entries(CITY_RATES)) {
+                                    if (addressText.includes(cityName)) {
+                                        foundRate = rate;
+                                        foundCityName = cityName;
+                                        break; 
+                                    }
                                 }
 
+                                if(foundRate !== null) {
+                                    const taxInput = document.getElementById('city-tax');
+                                    if(taxInput) {
+                                        taxInput.value = foundRate;
+                                        const cityCap = foundCityName.charAt(0).toUpperCase() + foundCityName.slice(1);
+                                        app.ui.showToast(`Tassa aggiornata per ${cityCap} (${foundRate}€)`, 'success');
+                                        taxInput.classList.remove('input-updated');
+                                        void taxInput.offsetWidth; 
+                                        taxInput.classList.add('input-updated');
+                                    }
+                                }
                                 app.calc.update();
                             };
                             list.appendChild(div);
@@ -523,10 +580,14 @@
                 debouncedSearch: null 
             },
 
-            // --- CHART.JS MODULE ---
             chart: {
                 init: () => {
-                    const ctx = document.getElementById('profitChart').getContext('2d');
+                    const ctxElement = document.getElementById('profitChart');
+                    if(!ctxElement) return;
+                    const ctx = ctxElement.getContext('2d');
+                    
+                    if(typeof Chart === 'undefined') { console.warn("Chart.js not loaded"); return; }
+
                     Chart.defaults.font.family = "'Inter', sans-serif";
                     Chart.defaults.color = '#94a3b8';
                     
@@ -565,29 +626,32 @@
             },
 
             calc: {
-                getVal: (id) => { const v = document.getElementById(id).value; return v === '' ? 0 : parseFloat(v); },
+                getVal: (id) => { const v = document.getElementById(id); return v && v.value ? parseFloat(v.value) : 0; },
                 format: (n) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }),
                 update: () => {
                     const c = app.calc;
                     const adr = c.getVal('adr');
                     const occPerc = c.getVal('occ') / 100;
-                    const nights = 365 * occPerc;
-                    const totalRev = adr * nights; 
+                    const totalRev = adr * 365 * occPerc; 
 
                     const otaCost = totalRev * (c.getVal('portal-comm') / 100);
                     const taxableBase = totalRev * (1 - (c.getVal('portal-comm')/100)); 
                     const taxCost = taxableBase * (c.getVal('tax-rate') / 100);
                     
-                    const varCostsTotal = c.getVal('var-costs') * nights;
+                    const varCostsTotal = c.getVal('var-costs') * 365 * occPerc;
                     const fixedCostsTotal = c.getVal('fixed-costs') * 12;
-                    const operatingCosts = varCostsTotal + fixedCostsTotal + (c.getVal('city-tax') * nights); 
+                    const cityTaxTotal = c.getVal('city-tax') * 365 * occPerc;
+                    const operatingCosts = varCostsTotal + fixedCostsTotal + cityTaxTotal; 
 
                     const netAnnual = totalRev - otaCost - taxCost - operatingCosts;
                     const molMonthly = netAnnual / 12;
-                    const netNight = netAnnual / nights;
+                    const netNight = (365 * occPerc) > 0 ? netAnnual / (365 * occPerc) : 0;
 
-                    document.getElementById('res-mol-month').textContent = c.format(molMonthly);
-                    document.getElementById('res-net-night').textContent = isFinite(netNight) ? c.format(netNight) : "0 €";
+                    const elMol = document.getElementById('res-mol-month');
+                    if(elMol) elMol.textContent = c.format(molMonthly);
+                    
+                    const elNetNight = document.getElementById('res-net-night');
+                    if(elNetNight) elNetNight.textContent = isFinite(netNight) ? c.format(netNight) : "0 €";
 
                     app.chart.update(totalRev, otaCost, taxCost, operatingCosts, netAnnual);
 
@@ -596,21 +660,25 @@
                     let m = 0;
                     if(i > 0 && n > 0) m = loan * (i * Math.pow(1+i,n)) / (Math.pow(1+i,n)-1);
                     else if(n > 0) m = loan/n;
-                    document.getElementById('res-mortgage').textContent = c.format(m);
-                    document.getElementById('res-cashflow').textContent = c.format(molMonthly - m);
+                    
+                    const elMortgage = document.getElementById('res-mortgage');
+                    if(elMortgage) elMortgage.textContent = c.format(m);
+                    
+                    const elCashflow = document.getElementById('res-cashflow');
+                    if(elCashflow) elCashflow.textContent = c.format(molMonthly - m);
                 },
                 debouncedUpdate: null
             },
 
             auth: {
                 init: () => {
-                    auth.onAuthStateChanged(async (u) => {
+                    app.services.auth.onAuthStateChanged(async (u) => {
                         state.user = u;
                         app.ui.updateAuthUI();
                         app.ui.closeModal('modal-login');
                         if (u) {
                             try {
-                                const ref = db.collection('users').doc(u.uid);
+                                const ref = app.services.db.collection('users').doc(u.uid);
                                 const d = await ref.get();
                                 if (d.exists) app.ui.setProStatus(d.data().plan === 'pro');
                                 else {
@@ -628,14 +696,14 @@
                 loginGoogle: async () => {
                     try { 
                         const provider = new firebase.auth.GoogleAuthProvider();
-                        await auth.signInWithPopup(provider); 
+                        await app.services.auth.signInWithPopup(provider); 
                     }
                     catch (e) { 
                         console.error(e);
                         app.ui.showToast(e.code === 'auth/unauthorized-domain' ? "Dominio non autorizzato in Firebase." : "Errore Login.", 'error');
                     }
                 },
-                logout: () => auth.signOut().then(() => window.location.reload())
+                logout: () => app.services.auth.signOut().then(() => window.location.reload())
             },
 
             data: {
@@ -649,9 +717,9 @@
 
                     const payload = { uid: state.user.uid, name: document.getElementById('project-name').value, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), inputs };
                     
-                    if (state.currentDocId) await db.collection('projects').doc(state.currentDocId).update(payload);
+                    if (state.currentDocId) await app.services.db.collection('projects').doc(state.currentDocId).update(payload);
                     else {
-                        const ref = await db.collection('projects').add(payload);
+                        const ref = await app.services.db.collection('projects').add(payload);
                         state.currentDocId = ref.id;
                     }
                     state.projectsCache = null;
@@ -665,7 +733,7 @@
                     div.innerHTML = '<p style="text-align:center">Caricamento...</p>';
                     
                     if (!state.projectsCache || (Date.now() - state.cacheTime > 60000)) {
-                        const s = await db.collection('projects').where("uid", "==", state.user.uid).orderBy("updatedAt", "desc").get();
+                        const s = await app.services.db.collection('projects').where("uid", "==", state.user.uid).orderBy("updatedAt", "desc").get();
                         state.projectsCache = [];
                         s.forEach(d => state.projectsCache.push({id: d.id, ...d.data()}));
                         state.cacheTime = Date.now();
@@ -675,18 +743,41 @@
                     if(!state.projectsCache.length) { div.innerHTML='<p style="text-align:center">Nessun progetto salvato.</p>'; return; }
                     
                     state.projectsCache.forEach(d => {
-                        const r = document.createElement('div');
-                        r.className = 'deal-row';
-                        r.innerHTML = `<div><div style="font-weight:600;color:white;">${d.name}</div><div style="font-size:0.75rem;color:var(--text-muted);">${d.updatedAt?new Date(d.updatedAt.seconds*1000).toLocaleDateString():'-'}</div></div>`;
-                        r.onclick = () => {
+                        // FIX SECURITY XSS: createElement instead of innerHTML string concat
+                        const row = document.createElement('div');
+                        row.className = 'deal-row';
+                        
+                        const infoDiv = document.createElement('div');
+                        const nameDiv = document.createElement('div');
+                        nameDiv.style.fontWeight = '600';
+                        nameDiv.style.color = 'white';
+                        nameDiv.textContent = d.name; // SAFE
+                        
+                        const dateDiv = document.createElement('div');
+                        dateDiv.style.fontSize = '0.75rem';
+                        dateDiv.style.color = 'var(--text-muted)';
+                        dateDiv.textContent = d.updatedAt ? new Date(d.updatedAt.seconds*1000).toLocaleDateString() : '-';
+
+                        infoDiv.appendChild(nameDiv);
+                        infoDiv.appendChild(dateDiv);
+                        row.appendChild(infoDiv);
+
+                        row.onclick = () => {
                             state.currentDocId = d.id;
-                            document.getElementById('project-name').value = d.name;
-                            Object.keys(d.inputs).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = d.inputs[k]; });
-                            if(d.inputs['geo-search']) document.getElementById('geo-search').value = d.inputs['geo-search'];
+                            const nameInput = document.getElementById('project-name');
+                            if(nameInput) nameInput.value = d.name;
+                            Object.keys(d.inputs).forEach(k => { 
+                                const el = document.getElementById(k);
+                                if(el) el.value = d.inputs[k]; 
+                            });
+                            if(d.inputs['geo-search']) {
+                                const geoEl = document.getElementById('geo-search');
+                                if(geoEl) geoEl.value = d.inputs['geo-search'];
+                            }
                             app.calc.update();
                             app.ui.closeModal('modal-deals');
                         };
-                        div.appendChild(r);
+                        div.appendChild(row);
                     });
                 }, 'Load')
             },
@@ -703,7 +794,7 @@
                 checkPolling: () => {
                     if (!sessionStorage.getItem('awaiting_payment') || !state.user) return;
                     console.log("Inizio Polling per status PRO...");
-                    const unsub = db.collection('users').doc(state.user.uid).onSnapshot(doc => {
+                    const unsub = app.services.db.collection('users').doc(state.user.uid).onSnapshot(doc => {
                         if (doc.exists && doc.data().plan === 'pro') {
                             app.ui.setProStatus(true);
                             app.ui.showToast('Pagamento Confermato! PRO Attivo.', 'success');
@@ -717,31 +808,49 @@
 
             contact: {
                 submit: () => {
+                    // Sanitizzazione input basica prima dell'invio (simulato)
+                    const name = app.utils.escapeHTML(document.getElementById('contact-name').value);
+                    const email = app.utils.escapeHTML(document.getElementById('contact-email').value);
+                    
+                    if(!name || !email) {
+                        app.ui.showToast("Compila i campi obbligatori", 'error');
+                        return;
+                    }
+
                     app.ui.setLoading(true);
-                    setTimeout(() => { app.ui.setLoading(false); app.ui.showToast("Messaggio inviato (Simulazione)", 'success'); document.querySelector('.contact-form').reset(); }, 1000);
+                    // Simulazione chiamata API backend
+                    setTimeout(() => { 
+                        app.ui.setLoading(false); 
+                        app.ui.showToast("Messaggio inviato (Simulazione)", 'success'); 
+                        const form = document.querySelector('.contact-form');
+                        if(form) form.reset(); 
+                    }, 1000);
                 }
             },
 
             admin: {
+                // WARNING: Client-side check only. Use Firestore Rules for real security.
                 check: () => { if (!state.user || state.user.email !== CONFIG.adminEmail) { app.ui.closeModal('modal-admin'); return false; } return true; },
                 switchTab: (t) => {
                     document.querySelectorAll('.admin-tab').forEach(x => x.classList.remove('active'));
                     document.querySelectorAll('.admin-content').forEach(x => x.classList.remove('active'));
-                    event.target.classList.add('active');
-                    document.getElementById(`tab-${t}`).classList.add('active');
+                    const targetTab = document.querySelector(`.admin-tab[onclick*="${t}"]`);
+                    if(targetTab) targetTab.classList.add('active');
+                    const content = document.getElementById(`tab-${t}`);
+                    if(content) content.classList.add('active');
                     if(t==='stats') app.admin.refreshStats();
                     if(t==='users') app.admin.loadUsers();
                 },
                 toggleMyPlan: () => app.utils.safeCall(async () => {
                     if(!app.admin.check()) return;
                     const next = state.isPro ? 'free' : 'pro';
-                    await db.collection('users').doc(state.user.uid).update({plan: next});
+                    await app.services.db.collection('users').doc(state.user.uid).update({plan: next});
                     app.ui.showToast(`Admin: Piano impostato a ${next.toUpperCase()}`);
                 }, 'AdmPlan'),
                 clearMyData: () => app.utils.safeCall(async () => {
                     if(!app.admin.check() || !confirm("Wipe dati personali?")) return;
-                    const s = await db.collection('projects').where("uid","==",state.user.uid).get();
-                    const b = db.batch();
+                    const s = await app.services.db.collection('projects').where("uid","==",state.user.uid).get();
+                    const b = app.services.db.batch();
                     s.forEach(d => b.delete(d.ref));
                     await b.commit();
                     state.projectsCache = null;
@@ -749,47 +858,43 @@
                 }, 'AdmWipe'),
                 refreshStats: () => app.utils.safeCall(async () => {
                     if(!app.admin.check()) return;
-                    const us = await db.collection('users').limit(100).get();
+                    const us = await app.services.db.collection('users').limit(100).get();
                     let p = 0; us.forEach(d => { if(d.data().plan==='pro') p++; });
                     document.getElementById('stat-users').textContent = us.size;
                     document.getElementById('stat-pro').textContent = p;
                 }, 'AdmStat'),
                 loadUsers: () => app.utils.safeCall(async () => {
                     if(!app.admin.check()) return;
-                    const s = await db.collection('users').orderBy('joined','desc').limit(20).get();
+                    const s = await app.services.db.collection('users').orderBy('joined','desc').limit(20).get();
                     const div = document.getElementById('admin-users-list');
                     div.innerHTML = '';
                     s.forEach(d => {
                         const u = d.data();
                         const r = document.createElement('div');
                         r.className = 'user-row';
-                        r.innerHTML = `<div><div style="font-weight:600;color:white">${u.email}</div><div style="font-size:0.8rem;color:#94a3b8">${u.plan.toUpperCase()}</div></div>`;
+                        
+                        const emailSpan = document.createElement('div');
+                        emailSpan.style.fontWeight = '600';
+                        emailSpan.style.color = 'white';
+                        emailSpan.textContent = u.email; // XSS Safe
+
+                        const planSpan = document.createElement('div');
+                        planSpan.style.fontSize = '0.8rem';
+                        planSpan.style.color = '#94a3b8';
+                        planSpan.textContent = u.plan ? u.plan.toUpperCase() : '-';
+
+                        r.appendChild(emailSpan);
+                        r.appendChild(planSpan);
                         div.appendChild(r);
                     });
                 }, 'AdmUsr')
             }
         };
 
+        // Inizializzazione Debouncers
         app.calc.debouncedUpdate = app.utils.debounce(app.calc.update, 300);
         app.geo.debouncedSearch = app.utils.debounce(app.geo.search, 500);
 
-        document.addEventListener('DOMContentLoaded', () => {
-            app.auth.init();
-            app.validate.bind();
-            app.chart.init(); 
-            app.calc.update();
-            
-            // Listeners Geo
-            const geoInput = document.getElementById('geo-search');
-            geoInput.addEventListener('input', (e) => app.geo.debouncedSearch(e.target.value));
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('#geo-search') && !e.target.closest('#geo-results')) {
-                    app.ui.toggleElement('geo-results', false);
-                }
-            });
-
-            document.addEventListener('keydown', (e) => { if(e.key==='Escape') document.querySelectorAll('.modal-backdrop').forEach(m=>m.classList.remove('active')); });
-        });
     </script>
 </body>
 </html>
