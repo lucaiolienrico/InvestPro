@@ -1,341 +1,900 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>InvestPro | Analisi Immobiliare</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvestPro | Analisi Immobiliare & Compliance GDPR</title>
+    <meta name="description" content="Piattaforma professionale per analisi investimenti immobiliari con calcolo ROI, Cashflow e Mutuo.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" defer></script>
 
-  <!-- Fonts & Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
-  <!-- Firebase (client-side) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" defer></script>
+    <style>
+        /* --- CORE VARIABLES & RESET --- */
+        :root {
+            --bg-body: #0f172a; --bg-card: #1e293b; --bg-input: #020617;
+            --primary: #10b981; --primary-hover: #059669; 
+            --danger: #ef4444; --warning: #f59e0b; --info: #3b82f6;
+            --text-main: #f8fafc; --text-muted: #94a3b8;
+            --border: #334155; --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5; overflow-x: hidden; }
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+        /* ACCESSABILITY & FOCUS */
+        :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-  <style>
-    :root {
-      --bg-body:#0f172a;
-      --bg-card:#1e293b;
-      --bg-input:#020617;
-      --primary:#10b981;
-      --danger:#ef4444;
-      --text-main:#f8fafc;
-      --text-muted:#94a3b8;
-      --border:#334155;
-      --radius:8px;
-    }
+        /* UI COMPONENTS */
+        header { background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px); }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; user-select: none; }
+        .logo span { color: white; letter-spacing: -0.02em; }
+        .user-menu { display: flex; align-items: center; gap: 1rem; }
 
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body {
-      font-family:'Inter',sans-serif;
-      background:var(--bg-body);
-      color:var(--text-main);
-      min-height:100vh;
-    }
+        .btn { padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border); background: var(--bg-card); color: white; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition); user-select: none; text-decoration: none; }
+        .btn:hover { background: var(--border); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: grayscale(1); }
+        .btn-primary { background: var(--primary); border-color: var(--primary); color: #000; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); border-color: var(--danger); color: var(--danger); }
+        .btn-admin { position: fixed; bottom: 20px; left: 20px; z-index: 90; background: var(--warning); color: #000; border: none; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); font-weight: 800; }
 
-    header {
-      position:sticky;
-      top:0;
-      z-index:50;
-      background:rgba(15,23,42,.95);
-      border-bottom:1px solid var(--border);
-      padding:1rem 1.5rem;
-    }
+        .plan-badge { font-size: 0.7rem; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 700; background: var(--border); color: var(--text-muted); letter-spacing: 0.05em; }
+        .plan-badge.pro { background: var(--primary); color: black; box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
 
-    .nav-container {
-      max-width:1400px;
-      margin:auto;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
+        .toolbar { max-width: 1400px; margin: 2rem auto 0; padding: 0 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .project-input { background: transparent; border: none; border-bottom: 1px solid var(--border); color: white; font-size: 1.25rem; font-weight: 600; width: 300px; padding: 0.5rem 0; transition: var(--transition); }
+        .project-input:focus { border-color: var(--primary); }
 
-    .logo {
-      font-weight:700;
-      font-size:1.25rem;
-      color:var(--primary);
-      display:flex;
-      gap:.5rem;
-      align-items:center;
-    }
+        main { padding: 2rem 1rem; max-width: 1400px; margin: 0 auto; width: 100%; flex: 1; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; }
 
-    .btn {
-      cursor:pointer;
-      border-radius:var(--radius);
-      border:1px solid var(--border);
-      background:var(--bg-card);
-      color:white;
-      padding:.5rem 1rem;
-      font-weight:600;
-    }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: visible; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: border-color 0.3s; }
+        .card:hover { border-color: rgba(51, 65, 85, 0.8); }
+        .card-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .step-circle { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: black; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: white; padding: 0.75rem; border-radius: 6px; font-size: 0.95rem; transition: var(--transition); font-family: inherit; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); }
+        input.invalid { border-color: var(--danger) !important; animation: shake 0.3s; }
+        
+        @keyframes flash-update { 
+            0% { background-color: var(--primary); box-shadow: 0 0 15px var(--primary); color: black; } 
+            100% { background-color: var(--bg-input); color: white; } 
+        }
+        .input-updated { animation: flash-update 2s cubic-bezier(0.22, 1, 0.36, 1); }
 
-    .btn-primary {
-      background:var(--primary);
-      color:black;
-      border-color:var(--primary);
-    }
+        .kpi-container { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+        .kpi-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+        .kpi-value { font-size: 1.25rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
 
-    .hidden { display:none !important; }
+        .locked-blur { filter: blur(6px); pointer-events: none; opacity: 0.5; transition: var(--transition); }
+        .overlay-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; opacity: 1; transition: opacity 0.5s ease; text-align: center; border-radius: 12px; }
+        .is-unlocked .locked-blur { filter: none; pointer-events: auto; opacity: 1; }
+        .is-unlocked .overlay-lock { display: none; } /* Better than opacity 0 for accessability */
 
-    main {
-      max-width:1400px;
-      margin:auto;
-      padding:2rem 1rem;
-    }
+        .chart-wrapper { margin-top: 1.5rem; position: relative; height: 250px; width: 100%; }
 
-    .dashboard-grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(380px,1fr));
-      gap:2rem;
-    }
+        .dropdown-menu { position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 0 8px 8px; z-index: 100; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+        .dropdown-item { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-muted); transition: all 0.2s; }
+        .dropdown-item:hover, .dropdown-item:focus { background: var(--primary); color: black; font-weight: 600; outline: none; }
+        .dropdown-item:last-child { border-bottom: none; }
 
-    .card {
-      background:var(--bg-card);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:1.5rem;
-    }
+        .reviews-section { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+        .reviews-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: white; }
+        .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .review-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; height: 100%; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .review-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .review-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--border); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .stars { color: #f59e0b; font-size: 0.8rem; margin-bottom: 0.5rem; }
+        .review-text { font-size: 0.9rem; color: var(--text-muted); font-style: italic; line-height: 1.6; flex-grow: 1; }
 
-    label {
-      font-size:.75rem;
-      color:var(--text-muted);
-      text-transform:uppercase;
-      font-weight:600;
-    }
+        .contact-section { margin-top: 4rem; padding: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
+        .contact-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: white; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        .contact-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .full-width { grid-column: span 2; }
+        .checkbox-wrapper { display: flex; align-items: start; gap: 0.8rem; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
+        .checkbox-wrapper input { width: auto; margin-top: 3px; cursor: pointer; }
+        .privacy-link { color: var(--primary); text-decoration: underline; cursor: pointer; }
 
-    input {
-      width:100%;
-      padding:.75rem;
-      background:var(--bg-input);
-      border:1px solid var(--border);
-      color:white;
-      border-radius:6px;
-    }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #loading-overlay.active { opacity: 1; pointer-events: auto; }
+        .spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-bottom-color: var(--primary); border-radius: 50%; animation: rotation 1s linear infinite; margin-bottom: 1rem; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; background: var(--bg-card); border-left: 4px solid var(--primary); color: white; padding: 1rem 1.5rem; border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.3s; min-width: 300px; }
+        .toast.show { transform: translateX(0); }
+        .toast.error { border-left-color: var(--danger); }
 
-    input.invalid {
-      border-color:var(--danger);
-    }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-backdrop.active { opacity: 1; pointer-events: auto; }
+        .modal-panel { background: var(--bg-card); border: 1px solid var(--border); width: 90%; max-width: 550px; border-radius: 12px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s; max-height: 85vh; overflow-y: auto; }
+        .modal-backdrop.active .modal-panel { transform: translateY(0); }
+        
+        .admin-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .admin-tab { padding: 0.8rem 1.5rem; cursor: pointer; color: var(--text-muted); font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.2s; flex: 1; text-align: center; }
+        .admin-tab.active { color: var(--warning); border-bottom-color: var(--warning); }
+        .admin-content { display: none; }
+        .admin-content.active { display: block; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .stat-num { font-size: 1.5rem; font-weight: 700; display: block; }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .deal-list, .user-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-top:1rem; }
+        .deal-row, .user-row { display: flex; justify-content: space-between; padding: 0.8rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .deal-row:hover, .user-row:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
 
-    .kpi {
-      display:flex;
-      justify-content:space-between;
-      margin-top:1rem;
-      padding:.75rem;
-      background:#020617;
-      border-radius:6px;
-      border:1px solid var(--border);
-    }
-
-    /* Email utente responsive corretto */
-    #user-email-display { display:none; font-size:.85rem; }
-    @media (min-width:768px){
-      #user-email-display { display:inline; }
-    }
-
-    /* Modal accessibile */
-    .modal {
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.7);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      opacity:0;
-      pointer-events:none;
-    }
-    .modal.active {
-      opacity:1;
-      pointer-events:auto;
-    }
-    .modal-panel {
-      background:var(--bg-card);
-      padding:2rem;
-      border-radius:12px;
-      max-width:500px;
-      width:90%;
-    }
-  </style>
+        .hidden { display: none !important; }
+        @media (max-width: 768px) { .contact-form { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+    </style>
 </head>
-
 <body>
 
-<header>
-  <div class="nav-container">
-    <div class="logo">
-      <i class="fa-solid fa-building-columns"></i> InvestPro
+    <div id="loading-overlay" role="status" aria-label="Caricamento in corso">
+        <div class="spinner"></div>
+        <p style="color: white; font-weight: 600;">Elaborazione in corso...</p>
     </div>
-    <div>
-      <span id="user-email-display"></span>
-      <button id="loginBtn" class="btn btn-primary">Accedi</button>
-      <button id="logoutBtn" class="btn hidden">Logout</button>
-    </div>
-  </div>
-</header>
+    
+    <div id="toast-container" role="alert" aria-live="assertive"></div>
 
-<main>
-  <div class="dashboard-grid">
+    <header>
+        <div class="nav-container">
+            <div class="logo"><i class="fa-solid fa-building-columns" aria-hidden="true"></i> <span>InvestPro</span></div>
+            <div class="user-menu">
+                <div id="auth-guest"><button class="btn btn-primary" onclick="app.ui.openModal('modal-login')"><i class="fa-solid fa-user"></i> Accedi</button></div>
+                <div id="auth-user" class="hidden">
+                    <span id="badge-plan" class="plan-badge">FREE</span>
+                    <span id="user-email-display" style="font-size: 0.85rem; margin-right:10px;"></span>
+                    <button class="btn" onclick="app.auth.logout()" title="Logout" style="padding: 0.5rem;"><i class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <!-- CONTI -->
-    <section class="card">
-      <h3>Conto Economico</h3>
-
-      <label>ADR (€)</label>
-      <input id="adr" type="number" value="120">
-
-      <label>Occupazione (%)</label>
-      <input id="occ" type="number" value="65">
-
-      <label>Costi Fissi Mensili (€)</label>
-      <input id="fixed-costs" type="number" value="600">
-
-      <div class="kpi">
-        <span>Utile Mensile</span>
-        <strong id="res-mol">--</strong>
-      </div>
-
-      <canvas id="profitChart" height="220"></canvas>
+    <section class="toolbar">
+        <input type="text" id="project-name" class="project-input" value="Nuova Analisi..." placeholder="Nome del Deal" aria-label="Nome del progetto">
+        <div style="display: flex; gap: 0.75rem;">
+            <button class="btn" onclick="app.data.openDealsList()"><i class="fa-solid fa-folder-open"></i> Deal</button>
+            <button class="btn btn-primary" onclick="app.data.saveProject()"><i class="fa-regular fa-floppy-disk"></i> Salva</button>
+        </div>
     </section>
 
-    <!-- CONTATTO GDPR -->
-    <section class="card">
-      <h3>Contatto</h3>
+    <main>
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header"><div class="step-circle">A</div><h3>Conto Economico</h3></div>
+                
+                <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
+                    <label for="geo-search">Indirizzo Immobile (Ricerca Smart)</label>
+                    <div style="position: relative;">
+                        <input type="text" id="geo-search" placeholder="Es. Via Roma 10, Milano" autocomplete="off" style="padding-right: 40px;">
+                        <i class="fa-solid fa-magnifying-glass" style="position: absolute; right: 12px; top: 12px; color: var(--text-muted); pointer-events: none;" aria-hidden="true"></i>
+                    </div>
+                    <div id="geo-results" class="dropdown-menu hidden" role="listbox"></div>
+                </div>
 
-      <label>Email</label>
-      <input id="contact-email" type="email" required>
+                <div class="input-grid">
+                    <div class="form-group"><label for="adr">ADR Medio (€)</label><input type="number" id="adr" value="120" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group"><label for="city-tax">Tassa Soggiorno (€)</label><input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()" style="transition: background-color 0.3s;"></div>
+                </div>
+                <div class="input-grid">
+                    <div class="form-group"><label for="portal-comm">Commissioni OTA (%)</label><input type="number" id="portal-comm" value="18" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group"><label for="tax-rate">Cedolare / Tasse (%)</label><input type="number" id="tax-rate" value="21" oninput="app.calc.debouncedUpdate()"></div>
+                </div>
+                <div class="input-grid">
+                    <div class="form-group"><label for="var-costs">Costi Var. Notte (€)</label><input type="number" id="var-costs" value="15" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="form-group"><label for="occ">Occupazione (%)</label><input type="number" id="occ" value="65" oninput="app.calc.debouncedUpdate()"></div>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;"><label for="fixed-costs">Costi Fissi Mensili (€)</label><input type="number" id="fixed-costs" value="600" oninput="app.calc.debouncedUpdate()"></div>
+                
+                <div class="kpi-container" style="margin-bottom: 0.5rem;"><span class="kpi-title">UTILE NETTO A NOTTE</span><span class="kpi-value" id="res-net-night">-- €</span></div>
+                <div class="kpi-container" style="border-color: var(--primary); background: rgba(16, 185, 129, 0.1);"><span class="kpi-title">MOL MENSILE</span><span class="kpi-value" id="res-mol-month">-- €</span></div>
 
-      <div style="margin-top:1rem;">
-        <input type="checkbox" id="contact-consent">
-        <label for="contact-consent" style="text-transform:none;">
-          Acconsento al trattamento dati (GDPR)
-        </label>
-      </div>
+                <div class="chart-wrapper">
+                    <canvas id="profitChart" aria-label="Grafico a ciambella della distribuzione dei costi e utili" role="img"></canvas>
+                </div>
+            </div>
 
-      <button id="contactSubmit" class="btn btn-primary" style="margin-top:1rem;">
-        Invia
-      </button>
-    </section>
+            <div class="card" id="card-pro">
+                <div class="overlay-lock">
+                    <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;" aria-hidden="true"></i>
+                    <h3>Funzionalità PRO</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Sblocca calcolo Mutuo, ROI e Cash Flow.</p>
+                    <button class="btn btn-primary" onclick="app.payment.start()">Sblocca Ora (9,90€)</button>
+                    <p style="font-size: 0.75rem; margin-top: 1rem; color: var(--text-muted);">Pagamento sicuro Stripe</p>
+                </div>
+                <div class="card-header"><div class="step-circle" style="background: white;">B</div><h3>Finanziario & Mutuo</h3></div>
+                <div class="locked-blur">
+                    <div class="form-group" style="margin-bottom: 1.25rem;"><label for="price">Prezzo Acquisto (€)</label><input type="number" id="price" value="250000" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="input-grid">
+                        <div class="form-group"><label for="reno">Ristrutturazione (€)</label><input type="number" id="reno" value="15000" oninput="app.calc.debouncedUpdate()"></div>
+                        <div class="form-group"><label for="closing">Spese Notaio (€)</label><input type="number" id="closing" value="10000" oninput="app.calc.debouncedUpdate()"></div>
+                    </div>
+                    <div class="input-grid">
+                        <div class="form-group"><label for="ltv">LTV Mutuo (%)</label><input type="number" id="ltv" value="80" oninput="app.calc.debouncedUpdate()"></div>
+                        <div class="form-group"><label for="rate">Tasso Interesse (%)</label><input type="number" id="rate" value="4.0" step="0.1" oninput="app.calc.debouncedUpdate()"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;"><label for="years">Durata Mutuo (Anni)</label><input type="number" id="years" value="20" oninput="app.calc.debouncedUpdate()"></div>
+                    <div class="kpi-container" style="margin-bottom: 1rem;"><span class="kpi-title">RATA MUTUO</span><span class="kpi-value" id="res-mortgage">-- €</span></div>
+                    <div class="kpi-container" style="background: var(--primary); border: none;"><span class="kpi-title" style="color: black;">CASH FLOW NETTO</span><span class="kpi-value" id="res-cashflow" style="color: black;">-- €</span></div>
+                </div>
+            </div>
+        </div>
 
-  </div>
-</main>
+        <section class="reviews-section">
+            <h2 class="reviews-title">Cosa dicono i professionisti</h2>
+            <div class="reviews-grid">
+                <div class="review-card"><div class="review-header"><div class="review-avatar">M</div><div><h4>Marco Miceli</h4><p>Investitore Immobiliare</p></div></div><div class="stars" aria-label="5 stelle">★★★★★</div><p class="review-text">"Uno strumento indispensabile. Prima perdevo ore su Excel, ora in 5 minuti ho un Business Plan pronto per la banca."</p></div>
+                <div class="review-card"><div class="review-header"><div class="review-avatar">G</div><div><h4>Giulia Loruso</h4><p>Property Manager</p></div></div><div class="stars" aria-label="5 stelle">★★★★★</div><p class="review-text">"Interfaccia pulita e calcoli precisissimi. Il calcolo automatico della rata mutuo e del cash flow netto è un game changer."</p></div>
+                <div class="review-card"><div class="review-header"><div class="review-avatar">A</div><div><h4>Alessandro C.</h4><p>Architetto</p></div></div><div class="stars" aria-label="4 stelle">★★★★☆</div><p class="review-text">"Ottimo per valutare velocemente la fattibilità di un'operazione di ristrutturazione e messa a reddito. Consigliato!"</p></div>
+                <div class="review-card"><div class="review-header"><div class="review-avatar">S</div><div><h4>Sofia Bruni</h4><p>Consulente Finanziario</p></div></div><div class="stars" aria-label="5 stelle">★★★★★</div><p class="review-text">"Finalmente un tool web-based serio. La possibilità di salvare e confrontare diversi scenari è fondamentale per il mio lavoro."</p></div>
+            </div>
+        </section>
 
-<!-- MODAL LOGIN -->
-<div id="loginModal" class="modal" role="dialog" aria-modal="true">
-  <div class="modal-panel">
-    <h2>Login</h2>
-    <button id="googleLogin" class="btn btn-primary" style="width:100%;">
-      Login Google
-    </button>
-  </div>
-</div>
+        <section class="contact-section">
+            <h2 class="contact-title">Contattaci</h2>
+            <form class="contact-form" onsubmit="event.preventDefault(); app.contact.submit();">
+                <div class="form-group">
+                    <label for="contact-name">Nome *</label>
+                    <input type="text" id="contact-name" name="name" required placeholder="Mario">
+                </div>
+                <div class="form-group">
+                    <label for="contact-surname">Cognome *</label>
+                    <input type="text" id="contact-surname" name="surname" required placeholder="Rossi">
+                </div>
+                <div class="form-group">
+                    <label for="contact-phone">Numero di Cellulare</label>
+                    <input type="tel" id="contact-phone" name="phone" placeholder="+39 333 1234567">
+                </div>
+                <div class="form-group">
+                    <label for="contact-email">Email *</label>
+                    <input type="email" id="contact-email" name="email" required placeholder="email@esempio.it">
+                </div>
+                <div class="form-group full-width">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="contact-consent" required>
+                        <label for="contact-consent" style="text-transform: none; font-weight: 400; font-size: 0.85rem;">
+                            Dichiaro di aver letto e compreso l'<span class="privacy-link" onclick="app.ui.openModal('modal-privacy')" role="button" tabindex="0">Informativa sulla Privacy</span> e acconsento al trattamento dei miei dati personali ai sensi del Reg. UE 2016/679 (GDPR) e D.Lgs. 196/2003. *
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Invia Messaggio</button>
+                </div>
+            </form>
+        </section>
 
-<script>
-/* ================= CONFIG ================= */
-const CONFIG = {
-  firebase: {
-    apiKey: "AIzaSyDiGDvR2yXm0DE7vlJNGrIPQB0G-ntLHc0",
-    authDomain: "analisimmobiliare-3b4a7.firebaseapp.com",
-    projectId: "analisimmobiliare-3b4a7"
-  }
-};
+    </main>
 
-/* ================= INIT ================= */
-firebase.initializeApp(CONFIG.firebase);
-const auth = firebase.auth();
+    <button id="admin-trigger" class="btn btn-admin hidden" onclick="app.ui.openModal('modal-admin')"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> ADMIN</button>
 
-/* ================= STATE ================= */
-const state = { user:null, chart:null };
+    <div id="modal-privacy" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+        <div class="modal-panel">
+            <h2 id="privacy-title" style="margin-bottom: 1rem; color: var(--text-main);">Informativa Privacy</h2>
+            <div class="legal-text" style="max-height: 60vh; overflow-y: auto; padding-right: 10px;">
+                <p><strong>Informativa ai sensi degli artt. 13 e 14 del Regolamento (UE) 2016/679 (GDPR)</strong></p>
+                <h3>1. Titolare del Trattamento</h3>
+                <p>Il Titolare del trattamento è <strong>InvestPro Srl</strong> (simulazione), Email: lucaiolienrico1@gmail.com.</p>
+                <h3>2. Finalità</h3>
+                <p>I dati forniti saranno trattati per rispondere alle richieste e gestire l'account utente.</p>
+            </div>
+            <button class="btn" style="width: 100%; margin-top: 1.5rem; justify-content: center;" onclick="app.ui.closeModal('modal-privacy')">Chiudi</button>
+        </div>
+    </div>
 
-/* ================= VALIDATION ================= */
-const VALIDATION = {
-  adr:{min:1,max:10000},
-  occ:{min:0,max:100},
-  "fixed-costs":{min:0,max:50000}
-};
+    <div id="modal-login" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <div class="modal-panel" style="text-align: center;">
+            <h2 id="login-title" style="margin-bottom: 1.5rem;">Accedi a InvestPro</h2>
+            <button class="btn" style="width: 100%; justify-content: center; background: white; color: black; border: 1px solid #ccc; padding: 0.8rem;" onclick="app.auth.loginGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google Logo"> Continua con Google
+            </button>
+            <button class="btn btn-danger" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="app.ui.closeModal('modal-login')">Annulla</button>
+        </div>
+    </div>
 
-const validateAll = () => {
-  let ok=true;
-  for(const id in VALIDATION){
-    const el=document.getElementById(id);
-    const v=parseFloat(el.value);
-    const r=VALIDATION[id];
-    if(isNaN(v)||v<r.min||v>r.max){
-      el.classList.add("invalid");
-      ok=false;
-    } else el.classList.remove("invalid");
-  }
-  return ok;
-};
+    <div id="modal-deals" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deals-title">
+        <div class="modal-panel">
+            <h2 id="deals-title" style="margin-bottom: 1rem;">I Miei Deal</h2>
+            <div id="deals-container" class="deal-list"><p style="text-align: center; color: var(--text-muted);">Caricamento...</p></div>
+            <button class="btn" style="width: 100%; margin-top: 1.5rem; justify-content: center;" onclick="app.ui.closeModal('modal-deals')">Chiudi</button>
+        </div>
+    </div>
 
-/* ================= CALC ================= */
-const calc = () => {
-  if(!validateAll()) return;
-  const adr=+adr.value;
-  const occ=+occ.value/100;
-  const fixed=+document.getElementById("fixed-costs").value;
-  const nights=365*occ;
-  const net=(adr*nights - fixed*12)/12;
-  document.getElementById("res-mol").textContent =
-    net.toLocaleString("it-IT",{style:"currency",currency:"EUR"});
-  updateChart(net);
-};
+    <div id="modal-admin" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+        <div class="modal-panel" style="max-width: 700px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h2 id="admin-title" style="color: var(--warning);"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Pannello Admin</h2>
+                <button class="btn" onclick="app.ui.closeModal('modal-admin')" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="admin-tabs" role="tablist">
+                <div class="admin-tab active" role="tab" tabindex="0" onclick="app.admin.switchTab('personal')">Personale</div>
+                <div class="admin-tab" role="tab" tabindex="0" onclick="app.admin.switchTab('stats')">Statistiche</div>
+                <div class="admin-tab" role="tab" tabindex="0" onclick="app.admin.switchTab('users')">Utenti</div>
+            </div>
+            <div id="tab-personal" class="admin-content active" role="tabpanel">
+                <p style="margin-bottom:1rem; color:var(--text-muted);">Gestione stato admin per test.</p>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <button class="btn btn-primary" onclick="app.admin.toggleMyPlan()">Toggle Mio Piano</button>
+                    <button class="btn btn-danger" onclick="app.admin.clearMyData()">Wipe Dati</button>
+                </div>
+            </div>
+            <div id="tab-stats" class="admin-content" role="tabpanel">
+                <div class="stat-grid">
+                    <div class="stat-card"><span class="stat-num" id="stat-users">0</span><span class="stat-label">Utenti</span></div>
+                    <div class="stat-card"><span class="stat-num" id="stat-pro">0</span><span class="stat-label">PRO</span></div>
+                </div>
+                <button class="btn" onclick="app.admin.refreshStats()" style="width:100%; justify-content:center;">Aggiorna</button>
+            </div>
+            <div id="tab-users" class="admin-content" role="tabpanel">
+                <div id="admin-users-list" class="user-list">Caricamento...</div>
+            </div>
+        </div>
+    </div>
 
-/* ================= CHART ================= */
-const updateChart = (net) => {
-  if(!state.chart){
-    const c=document.getElementById("profitChart");
-    if(!c) return;
-    state.chart=new Chart(c,{
-      type:"doughnut",
-      data:{labels:["Utile"],datasets:[{data:[net],backgroundColor:["#10b981"]}]},
-      options:{responsive:true}
-    });
-  } else {
-    state.chart.data.datasets[0].data=[net];
-    state.chart.update();
-  }
-};
+    <script>
+        // --- 1. CONFIGURAZIONE ---
+        const CONFIG = {
+            firebase: {
+                apiKey: "AIzaSyDiGDvR2yXm0DE7vlJNGrIPQB0G-ntLHc0",
+                authDomain: "analisimmobiliare-3b4a7.firebaseapp.com",
+                projectId: "analisimmobiliare-3b4a7",
+                storageBucket: "analisimmobiliare-3b4a7.firebasestorage.app",
+                messagingSenderId: "29979040948",
+                appId: "1:29979040948:web:597ea331e06567d8d50be1",
+                measurementId: "G-BWBQ55NYDE"
+            },
+            stripeLink: "https://buy.stripe.com/test_4gM8wP85i5I0flc0PygjC01", 
+            adminEmail: "lucaiolienrico1@gmail.com"
+        };
 
-/* ================= AUTH ================= */
-auth.onAuthStateChanged(u=>{
-  state.user=u;
-  document.getElementById("loginBtn").classList.toggle("hidden",!!u);
-  document.getElementById("logoutBtn").classList.toggle("hidden",!u);
-  document.getElementById("user-email-display").textContent=u?u.email:"";
-});
+        // --- 2. INIZIALIZZAZIONE FIREBASE ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof firebase === 'undefined') {
+                console.error("Firebase SDK not loaded correctly.");
+                return;
+            }
+            if (!firebase.apps.length) {
+                try { firebase.initializeApp(CONFIG.firebase); console.log("Firebase Init OK"); } 
+                catch (e) { console.error("Firebase Init Error", e); }
+            }
+            // Avvio App solo dopo il load del DOM
+            app.init();
+        });
 
-/* ================= EVENTS ================= */
-document.getElementById("loginBtn").onclick=()=>loginModal.classList.add("active");
-document.getElementById("logoutBtn").onclick=()=>auth.signOut();
-document.getElementById("googleLogin").onclick=()=>{
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-  loginModal.classList.remove("active");
-};
+        // --- 3. VALIDAZIONE & STATO ---
+        const VALIDATION = {
+            adr: { min: 1, max: 10000 }, 'city-tax': { min: 0, max: 100 }, 'portal-comm': { min: 0, max: 50 },
+            'tax-rate': { min: 0, max: 100 }, 'var-costs': { min: 0, max: 500 }, occ: { min: 0, max: 100 },
+            'fixed-costs': { min: 0, max: 50000 }, price: { min: 1000, max: 100000000 }, reno: { min: 0, max: 10000000 },
+            closing: { min: 0, max: 1000000 }, ltv: { min: 0, max: 100 }, rate: { min: 0, max: 20 }, years: { min: 1, max: 50 }
+        };
 
-["adr","occ","fixed-costs"].forEach(id=>{
-  document.getElementById(id).addEventListener("input",calc);
-});
+        const state = { 
+            user: null, 
+            isPro: false, 
+            currentDocId: null, 
+            projectsCache: null, 
+            cacheTime: 0,
+            chartInstance: null 
+        };
 
-document.getElementById("contactSubmit").onclick=()=>{
-  if(!contact-consent.checked){
-    alert("Consenso obbligatorio");
-    return;
-  }
-  const payload={
-    email:contact-email.value,
-    consent:true,
-    consentAt:new Date().toISOString()
-  };
-  console.log("GDPR LOG:",payload);
-  alert("Messaggio inviato");
-};
-</script>
+        const app = {
+            init: () => {
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                db.enablePersistence().catch(err => console.log("Persistence disabled:", err.code));
+                
+                // Binding Contexts
+                app.services.auth = auth;
+                app.services.db = db;
 
+                app.auth.init();
+                app.validate.bind();
+                app.chart.init(); 
+                app.calc.update();
+                
+                // Listeners Geo
+                const geoInput = document.getElementById('geo-search');
+                if(geoInput) geoInput.addEventListener('input', (e) => app.geo.debouncedSearch(e.target.value));
+                
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#geo-search') && !e.target.closest('#geo-results')) {
+                        app.ui.toggleElement('geo-results', false);
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => { if(e.key==='Escape') document.querySelectorAll('.modal-backdrop').forEach(m=>m.classList.remove('active')); });
+            },
+
+            services: { auth: null, db: null },
+
+            utils: {
+                debounce: (func, wait) => {
+                    let timeout;
+                    return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func(...args), wait); };
+                },
+                safeCall: async (fn, context) => {
+                    app.ui.setLoading(true);
+                    try { await fn(); } 
+                    catch (e) {
+                        console.error(`[${context}]`, e);
+                        let msg = "Errore operazione.";
+                        if (e.code === 'permission-denied') msg = "Accesso negato o permessi insufficienti.";
+                        app.ui.showToast(msg, 'error');
+                    } finally { app.ui.setLoading(false); }
+                },
+                escapeHTML: (str) => {
+                    if(!str) return '';
+                    return str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag]));
+                }
+            },
+
+            ui: {
+                toggleElement: (id, show) => { const el = document.getElementById(id); if(el) el.classList.toggle('hidden', !show); },
+                openModal: (id) => { const el = document.getElementById(id); if(el) el.classList.add('active'); },
+                closeModal: (id) => { const el = document.getElementById(id); if(el) el.classList.remove('active'); },
+                setLoading: (show) => { const el = document.getElementById('loading-overlay'); if(el) el.classList.toggle('active', show); },
+                showToast: (msg, type = 'info') => {
+                    const t = document.createElement('div');
+                    t.className = `toast ${type}`;
+                    t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':type==='success'?'fa-check-circle':'fa-info-circle'}"></i><span>${app.utils.escapeHTML(msg)}</span>`;
+                    document.getElementById('toast-container').appendChild(t);
+                    setTimeout(() => t.classList.add('show'), 10);
+                    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300) }, 3000);
+                },
+                updateAuthUI: () => {
+                    const u = state.user;
+                    app.ui.toggleElement('auth-guest', !u);
+                    app.ui.toggleElement('auth-user', !!u);
+                    if(u) {
+                        const emailDisplay = document.getElementById('user-email-display');
+                        if(emailDisplay) emailDisplay.textContent = u.email;
+                        app.ui.toggleElement('admin-trigger', u.email === CONFIG.adminEmail);
+                    }
+                },
+                setProStatus: (active) => {
+                    state.isPro = active;
+                    const b = document.getElementById('badge-plan'), c = document.getElementById('card-pro');
+                    if(b) { b.textContent = active ? "PRO" : "FREE"; b.classList.toggle('pro', active); }
+                    if(c) c.classList.toggle('is-unlocked', active);
+                }
+            },
+
+            validate: {
+                checkField: (id) => {
+                    const el = document.getElementById(id);
+                    if (!el || el.value === '') return true;
+                    const val = parseFloat(el.value);
+                    const rule = VALIDATION[id];
+                    if (!rule) return true;
+                    const isValid = !isNaN(val) && val >= rule.min && val <= rule.max;
+                    el.classList.toggle('invalid', !isValid);
+                    return isValid;
+                },
+                all: () => {
+                    let valid = true;
+                    Object.keys(VALIDATION).forEach(k => {
+                        const el = document.getElementById(k);
+                        if (el && (el.value === '' || !app.validate.checkField(k))) {
+                            el.classList.add('invalid');
+                            valid = false;
+                        }
+                    });
+                    if (!valid) app.ui.showToast("Controlla i campi evidenziati in rosso.", 'error');
+                    return valid;
+                },
+                bind: () => document.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('blur', () => app.validate.checkField(i.id)))
+            },
+
+            geo: {
+                search: async (query) => {
+                    if (query.length < 3) return;
+                    const list = document.getElementById('geo-results');
+                    list.innerHTML = '<div style="padding:10px; text-align:center; font-size:0.8rem;">Ricerca in corso...</div>';
+                    app.ui.toggleElement('geo-results', true);
+
+                    try {
+                        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5&countrycodes=it`;
+                        const res = await fetch(url, { headers: { 'User-Agent': 'InvestPro-App' } });
+                        const data = await res.json();
+
+                        list.innerHTML = '';
+                        if (data.length === 0) {
+                            list.innerHTML = '<div style="padding:10px; text-align:center; color:#ef4444;">Nessun risultato</div>';
+                            return;
+                        }
+
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'dropdown-item';
+                            div.setAttribute('role', 'option');
+                            div.setAttribute('tabindex', '0'); // Tastiera accessibile
+                            
+                            // Safe Text Content assignment (NO innerHTML)
+                            const city = item.address.city || item.address.town || item.address.village || item.address.municipality || '';
+                            const road = item.address.road || '';
+                            const number = item.address.house_number || '';
+                            let label = `${road} ${number}, ${city}`;
+                            if(label.trim() === ',') label = item.display_name.split(',').slice(0,3).join(',');
+                            div.textContent = label;
+                            
+                            div.onclick = () => {
+                                document.getElementById('geo-search').value = div.textContent;
+                                app.ui.toggleElement('geo-results', false);
+                                
+                                const CITY_RATES = {
+                                    'milano': 4.5, 'roma': 6.0, 'firenze': 5.5, 'venezia': 5.0,
+                                    'napoli': 3.0, 'torino': 2.8, 'bologna': 3.0, 'rimini': 2.5,
+                                    'verona': 3.5, 'palermo': 2.0
+                                };
+
+                                let foundRate = null;
+                                let foundCityName = "";
+                                const addressText = (item.address.city || item.address.town || item.address.village || item.address.municipality || item.display_name).toLowerCase();
+
+                                for (const [cityName, rate] of Object.entries(CITY_RATES)) {
+                                    if (addressText.includes(cityName)) {
+                                        foundRate = rate;
+                                        foundCityName = cityName;
+                                        break; 
+                                    }
+                                }
+
+                                if(foundRate !== null) {
+                                    const taxInput = document.getElementById('city-tax');
+                                    if(taxInput) {
+                                        taxInput.value = foundRate;
+                                        const cityCap = foundCityName.charAt(0).toUpperCase() + foundCityName.slice(1);
+                                        app.ui.showToast(`Tassa aggiornata per ${cityCap} (${foundRate}€)`, 'success');
+                                        taxInput.classList.remove('input-updated');
+                                        void taxInput.offsetWidth; 
+                                        taxInput.classList.add('input-updated');
+                                    }
+                                }
+                                app.calc.update();
+                            };
+                            list.appendChild(div);
+                        });
+                    } catch (e) {
+                        console.error(e);
+                        list.innerHTML = '<div style="padding:10px; text-align:center;">Errore rete</div>';
+                    }
+                },
+                debouncedSearch: null 
+            },
+
+            chart: {
+                init: () => {
+                    const ctxElement = document.getElementById('profitChart');
+                    if(!ctxElement) return;
+                    const ctx = ctxElement.getContext('2d');
+                    
+                    if(typeof Chart === 'undefined') { console.warn("Chart.js not loaded"); return; }
+
+                    Chart.defaults.font.family = "'Inter', sans-serif";
+                    Chart.defaults.color = '#94a3b8';
+                    
+                    state.chartInstance = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Utile Netto', 'Commissioni OTA', 'Tasse', 'Costi Operativi'],
+                            datasets: [{
+                                data: [0, 0, 0, 0],
+                                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
+                                borderWidth: 0,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '70%',
+                            plugins: {
+                                legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
+                                tooltip: { 
+                                    callbacks: { 
+                                        label: (ctx) => ` ${ctx.label}: ${ctx.raw.toLocaleString('it-IT', {style:'currency', currency:'EUR'})}` 
+                                    } 
+                                }
+                            }
+                        }
+                    });
+                },
+                update: (rev, ota, taxes, costs, net) => {
+                    if (!state.chartInstance) return;
+                    const netVisual = net < 0 ? 0 : net; 
+                    state.chartInstance.data.datasets[0].data = [netVisual, ota, taxes, costs];
+                    state.chartInstance.update();
+                }
+            },
+
+            calc: {
+                getVal: (id) => { const v = document.getElementById(id); return v && v.value ? parseFloat(v.value) : 0; },
+                format: (n) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }),
+                update: () => {
+                    const c = app.calc;
+                    const adr = c.getVal('adr');
+                    const occPerc = c.getVal('occ') / 100;
+                    const totalRev = adr * 365 * occPerc; 
+
+                    const otaCost = totalRev * (c.getVal('portal-comm') / 100);
+                    const taxableBase = totalRev * (1 - (c.getVal('portal-comm')/100)); 
+                    const taxCost = taxableBase * (c.getVal('tax-rate') / 100);
+                    
+                    const varCostsTotal = c.getVal('var-costs') * 365 * occPerc;
+                    const fixedCostsTotal = c.getVal('fixed-costs') * 12;
+                    const cityTaxTotal = c.getVal('city-tax') * 365 * occPerc;
+                    const operatingCosts = varCostsTotal + fixedCostsTotal + cityTaxTotal; 
+
+                    const netAnnual = totalRev - otaCost - taxCost - operatingCosts;
+                    const molMonthly = netAnnual / 12;
+                    const netNight = (365 * occPerc) > 0 ? netAnnual / (365 * occPerc) : 0;
+
+                    const elMol = document.getElementById('res-mol-month');
+                    if(elMol) elMol.textContent = c.format(molMonthly);
+                    
+                    const elNetNight = document.getElementById('res-net-night');
+                    if(elNetNight) elNetNight.textContent = isFinite(netNight) ? c.format(netNight) : "0 €";
+
+                    app.chart.update(totalRev, otaCost, taxCost, operatingCosts, netAnnual);
+
+                    const loan = c.getVal('price') * (c.getVal('ltv')/100);
+                    const i = (c.getVal('rate')/100)/12, n = c.getVal('years')*12;
+                    let m = 0;
+                    if(i > 0 && n > 0) m = loan * (i * Math.pow(1+i,n)) / (Math.pow(1+i,n)-1);
+                    else if(n > 0) m = loan/n;
+                    
+                    const elMortgage = document.getElementById('res-mortgage');
+                    if(elMortgage) elMortgage.textContent = c.format(m);
+                    
+                    const elCashflow = document.getElementById('res-cashflow');
+                    if(elCashflow) elCashflow.textContent = c.format(molMonthly - m);
+                },
+                debouncedUpdate: null
+            },
+
+            auth: {
+                init: () => {
+                    app.services.auth.onAuthStateChanged(async (u) => {
+                        state.user = u;
+                        app.ui.updateAuthUI();
+                        app.ui.closeModal('modal-login');
+                        if (u) {
+                            try {
+                                const ref = app.services.db.collection('users').doc(u.uid);
+                                const d = await ref.get();
+                                if (d.exists) app.ui.setProStatus(d.data().plan === 'pro');
+                                else {
+                                    await ref.set({ email: u.email, plan: 'free', joined: firebase.firestore.FieldValue.serverTimestamp() });
+                                    app.ui.setProStatus(false);
+                                }
+                                app.payment.checkPolling();
+                            } catch(e) { console.error("Errore recupero utente", e); }
+                        } else {
+                            app.ui.setProStatus(false);
+                            state.currentDocId = null;
+                        }
+                    });
+                },
+                loginGoogle: async () => {
+                    try { 
+                        const provider = new firebase.auth.GoogleAuthProvider();
+                        await app.services.auth.signInWithPopup(provider); 
+                    }
+                    catch (e) { 
+                        console.error(e);
+                        app.ui.showToast(e.code === 'auth/unauthorized-domain' ? "Dominio non autorizzato in Firebase." : "Errore Login.", 'error');
+                    }
+                },
+                logout: () => app.services.auth.signOut().then(() => window.location.reload())
+            },
+
+            data: {
+                saveProject: () => app.utils.safeCall(async () => {
+                    if (!state.user) return app.ui.openModal('modal-login');
+                    if (!app.validate.all()) return;
+                    
+                    const inputs = {};
+                    Object.keys(VALIDATION).forEach(k => inputs[k] = document.getElementById(k).value);
+                    inputs['geo-search'] = document.getElementById('geo-search').value;
+
+                    const payload = { uid: state.user.uid, name: document.getElementById('project-name').value, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), inputs };
+                    
+                    if (state.currentDocId) await app.services.db.collection('projects').doc(state.currentDocId).update(payload);
+                    else {
+                        const ref = await app.services.db.collection('projects').add(payload);
+                        state.currentDocId = ref.id;
+                    }
+                    state.projectsCache = null;
+                    app.ui.showToast("Progetto salvato!", 'success');
+                }, 'Save'),
+
+                openDealsList: () => app.utils.safeCall(async () => {
+                    if (!state.user) return app.ui.openModal('modal-login');
+                    app.ui.openModal('modal-deals');
+                    const div = document.getElementById('deals-container');
+                    div.innerHTML = '<p style="text-align:center">Caricamento...</p>';
+                    
+                    if (!state.projectsCache || (Date.now() - state.cacheTime > 60000)) {
+                        const s = await app.services.db.collection('projects').where("uid", "==", state.user.uid).orderBy("updatedAt", "desc").get();
+                        state.projectsCache = [];
+                        s.forEach(d => state.projectsCache.push({id: d.id, ...d.data()}));
+                        state.cacheTime = Date.now();
+                    }
+
+                    div.innerHTML = '';
+                    if(!state.projectsCache.length) { div.innerHTML='<p style="text-align:center">Nessun progetto salvato.</p>'; return; }
+                    
+                    state.projectsCache.forEach(d => {
+                        // FIX SECURITY XSS: createElement instead of innerHTML string concat
+                        const row = document.createElement('div');
+                        row.className = 'deal-row';
+                        
+                        const infoDiv = document.createElement('div');
+                        const nameDiv = document.createElement('div');
+                        nameDiv.style.fontWeight = '600';
+                        nameDiv.style.color = 'white';
+                        nameDiv.textContent = d.name; // SAFE
+                        
+                        const dateDiv = document.createElement('div');
+                        dateDiv.style.fontSize = '0.75rem';
+                        dateDiv.style.color = 'var(--text-muted)';
+                        dateDiv.textContent = d.updatedAt ? new Date(d.updatedAt.seconds*1000).toLocaleDateString() : '-';
+
+                        infoDiv.appendChild(nameDiv);
+                        infoDiv.appendChild(dateDiv);
+                        row.appendChild(infoDiv);
+
+                        row.onclick = () => {
+                            state.currentDocId = d.id;
+                            const nameInput = document.getElementById('project-name');
+                            if(nameInput) nameInput.value = d.name;
+                            Object.keys(d.inputs).forEach(k => { 
+                                const el = document.getElementById(k);
+                                if(el) el.value = d.inputs[k]; 
+                            });
+                            if(d.inputs['geo-search']) {
+                                const geoEl = document.getElementById('geo-search');
+                                if(geoEl) geoEl.value = d.inputs['geo-search'];
+                            }
+                            app.calc.update();
+                            app.ui.closeModal('modal-deals');
+                        };
+                        div.appendChild(row);
+                    });
+                }, 'Load')
+            },
+
+            payment: {
+                start: () => {
+                    if (!state.user) return app.ui.openModal('modal-login');
+                    sessionStorage.setItem('awaiting_payment', 'true');
+                    const link = `${CONFIG.stripeLink}?prefilled_email=${encodeURIComponent(state.user.email)}&client_reference_id=${state.user.uid}`;
+                    window.open(link, '_blank');
+                    app.ui.showToast('Pagina pagamento aperta. Attendo conferma...', 'info');
+                    app.payment.checkPolling();
+                },
+                checkPolling: () => {
+                    if (!sessionStorage.getItem('awaiting_payment') || !state.user) return;
+                    console.log("Inizio Polling per status PRO...");
+                    const unsub = app.services.db.collection('users').doc(state.user.uid).onSnapshot(doc => {
+                        if (doc.exists && doc.data().plan === 'pro') {
+                            app.ui.setProStatus(true);
+                            app.ui.showToast('Pagamento Confermato! PRO Attivo.', 'success');
+                            sessionStorage.removeItem('awaiting_payment');
+                            unsub(); 
+                        }
+                    });
+                    setTimeout(unsub, 1800000);
+                }
+            },
+
+            contact: {
+                submit: () => {
+                    // Sanitizzazione input basica prima dell'invio (simulato)
+                    const name = app.utils.escapeHTML(document.getElementById('contact-name').value);
+                    const email = app.utils.escapeHTML(document.getElementById('contact-email').value);
+                    
+                    if(!name || !email) {
+                        app.ui.showToast("Compila i campi obbligatori", 'error');
+                        return;
+                    }
+
+                    app.ui.setLoading(true);
+                    // Simulazione chiamata API backend
+                    setTimeout(() => { 
+                        app.ui.setLoading(false); 
+                        app.ui.showToast("Messaggio inviato (Simulazione)", 'success'); 
+                        const form = document.querySelector('.contact-form');
+                        if(form) form.reset(); 
+                    }, 1000);
+                }
+            },
+
+            admin: {
+                // WARNING: Client-side check only. Use Firestore Rules for real security.
+                check: () => { if (!state.user || state.user.email !== CONFIG.adminEmail) { app.ui.closeModal('modal-admin'); return false; } return true; },
+                switchTab: (t) => {
+                    document.querySelectorAll('.admin-tab').forEach(x => x.classList.remove('active'));
+                    document.querySelectorAll('.admin-content').forEach(x => x.classList.remove('active'));
+                    const targetTab = document.querySelector(`.admin-tab[onclick*="${t}"]`);
+                    if(targetTab) targetTab.classList.add('active');
+                    const content = document.getElementById(`tab-${t}`);
+                    if(content) content.classList.add('active');
+                    if(t==='stats') app.admin.refreshStats();
+                    if(t==='users') app.admin.loadUsers();
+                },
+                toggleMyPlan: () => app.utils.safeCall(async () => {
+                    if(!app.admin.check()) return;
+                    const next = state.isPro ? 'free' : 'pro';
+                    await app.services.db.collection('users').doc(state.user.uid).update({plan: next});
+                    app.ui.showToast(`Admin: Piano impostato a ${next.toUpperCase()}`);
+                }, 'AdmPlan'),
+                clearMyData: () => app.utils.safeCall(async () => {
+                    if(!app.admin.check() || !confirm("Wipe dati personali?")) return;
+                    const s = await app.services.db.collection('projects').where("uid","==",state.user.uid).get();
+                    const b = app.services.db.batch();
+                    s.forEach(d => b.delete(d.ref));
+                    await b.commit();
+                    state.projectsCache = null;
+                    app.ui.showToast("Dati cancellati.", 'success');
+                }, 'AdmWipe'),
+                refreshStats: () => app.utils.safeCall(async () => {
+                    if(!app.admin.check()) return;
+                    const us = await app.services.db.collection('users').limit(100).get();
+                    let p = 0; us.forEach(d => { if(d.data().plan==='pro') p++; });
+                    document.getElementById('stat-users').textContent = us.size;
+                    document.getElementById('stat-pro').textContent = p;
+                }, 'AdmStat'),
+                loadUsers: () => app.utils.safeCall(async () => {
+                    if(!app.admin.check()) return;
+                    const s = await app.services.db.collection('users').orderBy('joined','desc').limit(20).get();
+                    const div = document.getElementById('admin-users-list');
+                    div.innerHTML = '';
+                    s.forEach(d => {
+                        const u = d.data();
+                        const r = document.createElement('div');
+                        r.className = 'user-row';
+                        
+                        const emailSpan = document.createElement('div');
+                        emailSpan.style.fontWeight = '600';
+                        emailSpan.style.color = 'white';
+                        emailSpan.textContent = u.email; // XSS Safe
+
+                        const planSpan = document.createElement('div');
+                        planSpan.style.fontSize = '0.8rem';
+                        planSpan.style.color = '#94a3b8';
+                        planSpan.textContent = u.plan ? u.plan.toUpperCase() : '-';
+
+                        r.appendChild(emailSpan);
+                        r.appendChild(planSpan);
+                        div.appendChild(r);
+                    });
+                }, 'AdmUsr')
+            }
+        };
+
+        // Inizializzazione Debouncers
+        app.calc.debouncedUpdate = app.utils.debounce(app.calc.update, 300);
+        app.geo.debouncedSearch = app.utils.debounce(app.geo.search, 500);
+
+    </script>
 </body>
 </html>
