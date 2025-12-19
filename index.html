@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
     <style>
-        /* --- CORE VARIABLES --- */
+        /* --- DESIGN SYSTEM --- */
         :root {
             --bg-body: #0f172a; --bg-card: #1e293b; --bg-input: #020617;
             --primary: #10b981; --primary-hover: #059669; 
@@ -28,7 +28,6 @@
             --font-main: 'Inter', sans-serif;
         }
 
-        /* RESET & BASE */
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
         body { background-color: var(--bg-body); color: var(--text-main); font-family: var(--font-main); min-height: 100vh; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5; }
         :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
@@ -36,7 +35,7 @@
         /* HEADER */
         header { background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px); }
         .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-weight: 800; font-size: 1.4rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; letter-spacing: -0.03em; cursor: pointer; }
+        .logo { font-weight: 800; font-size: 1.4rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; letter-spacing: -0.03em; }
         .logo span { color: white; }
         .user-menu { display: flex; align-items: center; gap: 1rem; }
 
@@ -49,17 +48,16 @@
         .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: var(--danger); color: var(--danger); }
         .btn-admin { position: fixed; bottom: 20px; left: 20px; z-index: 100; background: var(--warning); color: #000; font-weight: 800; box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); border:none; }
 
-        /* TOOLBAR */
+        /* LAYOUT */
         .toolbar { max-width: 1400px; margin: 2rem auto 0; padding: 0 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .project-input { background: transparent; border: none; border-bottom: 2px solid var(--border); color: white; font-size: 1.5rem; font-weight: 700; width: 100%; max-width: 400px; padding: 0.5rem 0; transition: border-color 0.3s; }
         .project-input:focus { border-color: var(--primary); }
 
-        /* LAYOUT */
         main { padding: 2rem 1rem; max-width: 1400px; margin: 0 auto; width: 100%; flex: 1; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; }
 
         /* CARDS */
-        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: border-color 0.3s; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: visible; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: border-color 0.3s; }
         .card:hover { border-color: #475569; }
         .card-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .step-circle { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: black; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
@@ -93,7 +91,7 @@
         .is-unlocked .locked-blur { filter: none; pointer-events: auto; opacity: 1; }
         .is-unlocked .overlay-lock { display: none; }
 
-        /* UI ELEMENTS */
+        /* UTILS & MODALS */
         .hidden { display: none !important; }
         .badge { padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; background: var(--border); color: var(--text-muted); }
         .badge.pro { background: var(--primary); color: black; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
@@ -113,10 +111,12 @@
         .modal-panel { background: var(--bg-card); border: 1px solid var(--border); width: 90%; max-width: 600px; border-radius: 16px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s; max-height: 85vh; overflow-y: auto; }
         .modal-backdrop.active .modal-panel { transform: translateY(0); }
 
-        /* AMORTIZATION TABLE */
+        /* AMORTIZATION TABLE (Fixed Alignment) */
         .amortization-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 1rem; }
-        .amortization-table th { text-align: left; padding: 0.8rem; border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
-        .amortization-table td { padding: 0.8rem; border-bottom: 1px solid var(--border); color: white; font-variant-numeric: tabular-nums; }
+        .amortization-table th { text-align: right; padding: 0.8rem; border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+        .amortization-table th:first-child { text-align: left; }
+        .amortization-table td { text-align: right; padding: 0.8rem; border-bottom: 1px solid var(--border); color: white; font-variant-numeric: tabular-nums; }
+        .amortization-table td:first-child { text-align: left; color: var(--primary); font-weight: 600; }
         .amortization-table tr:hover { background: rgba(255,255,255,0.02); }
 
         /* ADMIN & SECTIONS */
@@ -128,6 +128,7 @@
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
         .stat-card { background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
         .stat-num { font-size: 1.5rem; font-weight: 700; display: block; }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
         
         .deal-list .deal-row { padding: 1rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center; }
         .deal-list .deal-row:hover { background: rgba(255,255,255,0.05); }
@@ -176,7 +177,7 @@
                 <div class="card-header"><div class="step-circle">A</div><h3>Conto Economico</h3></div>
                 
                 <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
-                    <label>Indirizzo Immobile (Ricerca Smart)</label>
+                    <label>Indirizzo Immobile</label>
                     <div style="position: relative;">
                         <input type="text" id="geo-search" placeholder="Es. Via Roma 10, Milano" autocomplete="off" style="padding-right: 40px;">
                         <i class="fa-solid fa-magnifying-glass" style="position: absolute; right: 15px; top: 12px; color: var(--text-muted); pointer-events: none;"></i>
@@ -232,7 +233,7 @@
                     <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                             <div class="kpi-container" style="background: rgba(59, 130, 246, 0.1); border-color: var(--info); padding: 0.8rem;">
-                                <span class="kpi-title" style="color: var(--info); font-size: 0.7rem;">Anticipo Cash</span>
+                                <span class="kpi-title" style="color: var(--info); font-size: 0.7rem;">Capitale Iniziale (Cash)</span>
                                 <span class="kpi-value" id="res-downpayment" style="font-size: 1rem;">-- €</span>
                             </div>
                             <div class="kpi-container" style="background: rgba(239, 68, 68, 0.1); border-color: var(--danger); padding: 0.8rem;">
@@ -318,7 +319,7 @@
     <div id="modal-amortization" class="modal-backdrop">
         <div class="modal-panel" style="max-width: 800px;">
             <div style="display:flex; justify-content:space-between; margin-bottom:1rem; align-items:center;">
-                <h2>Piano di Ammortamento</h2>
+                <h2>Piano di Ammortamento (Annuale)</h2>
                 <button class="btn" onclick="app.ui.closeModal('modal-amortization')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div style="max-height: 60vh; overflow-y: auto;">
@@ -483,12 +484,10 @@
                                     'sirmione': 2.5, 'desenzano': 2.0, 'peschiera': 2.0, 'stresa': 2.5
                                 };
 
-                                // Ricerca "Fuzzy" (Normalizzazione stringhe per evitare errori "Via Roma")
-                                const cleanSearch = app.utils.normalizeStr(city + " " + item.display_name); // Cerca solo nel nome città e display name
+                                const cleanSearch = app.utils.normalizeStr(city + " " + item.display_name);
                                 let foundRate = null;
                                 let foundCity = "";
 
-                                // Logica Robusta: cerca se la chiave (es. "milano") è contenuta nella stringa normalizzata
                                 for (const [key, rate] of Object.entries(RATES)) {
                                     if (cleanSearch.includes(key)) { 
                                         foundRate = rate; 
@@ -501,12 +500,12 @@
                                     const el = document.getElementById('city-tax');
                                     el.value = foundRate;
                                     el.classList.remove('input-updated');
-                                    void el.offsetWidth; // Trigger reflow
+                                    void el.offsetWidth;
                                     el.classList.add('input-updated');
                                     app.ui.showToast(`Tassa aggiornata per ${foundCity}: ${foundRate}€`, 'success');
                                 } else {
                                     app.ui.showToast(`Città non in lista. Tassa default: 2€`, 'info');
-                                    document.getElementById('city-tax').value = 2; // Default prudenziale
+                                    document.getElementById('city-tax').value = 2;
                                 }
                                 app.calc.update();
                             };
@@ -560,11 +559,13 @@
 
                     app.chart.update(totalRev, ota, taxes, opCosts, net);
 
-                    // Mutuo (Calcoli Avanzati)
+                    // --- MUTUO & FINANZA (CORRETTO) ---
                     const price = c.getVal('price');
                     const ltv = c.getVal('ltv');
                     const loan = price * (ltv/100);
-                    const downPayment = price - loan;
+                    
+                    // CORREZIONE CRITICA: Il Capitale Iniziale (Equity) DEVE includere anche Ristrutturazione + Notaio
+                    const initialCapital = (price - loan) + c.getVal('reno') + c.getVal('closing');
                     
                     const i = (c.getVal('rate')/100)/12; 
                     const n = c.getVal('years')*12;
@@ -579,8 +580,8 @@
                     document.getElementById('res-mortgage').textContent = c.format(m);
                     document.getElementById('res-cashflow').textContent = c.format((net/12) - m);
                     
-                    // Nuovi KPI Finanziari
-                    document.getElementById('res-downpayment').textContent = c.format(downPayment);
+                    // KPI AGGIORNATI
+                    document.getElementById('res-downpayment').textContent = c.format(initialCapital);
                     document.getElementById('res-total-interest').textContent = c.format(totalInterest > 0 ? totalInterest : 0);
                 },
                 showAmortization: () => {
@@ -674,15 +675,8 @@
                         const r = document.createElement('div');
                         r.className = 'deal-row';
                         const info = document.createElement('div');
-                        
-                        // FIX: Utilizzo di createTextNode/textContent per prevenire XSS
-                        const title = document.createElement('div'); 
-                        title.className = 'deal-name'; 
-                        title.textContent = d.data().name;
-                        
-                        const date = document.createElement('div'); 
-                        date.className = 'deal-date'; 
-                        date.textContent = d.data().updatedAt ? new Date(d.data().updatedAt.seconds*1000).toLocaleDateString() : '';
+                        const title = document.createElement('div'); title.className = 'deal-name'; title.textContent = d.data().name;
+                        const date = document.createElement('div'); date.className = 'deal-date'; date.textContent = d.data().updatedAt ? new Date(d.data().updatedAt.seconds*1000).toLocaleDateString() : '';
                         
                         info.appendChild(title); info.appendChild(date);
                         r.appendChild(info);
@@ -774,7 +768,6 @@
                         const r = document.createElement('div');
                         r.className = 'deal-row';
                         
-                        // FIX: Utilizzo di textContent per prevenire XSS anche qui
                         const emailDiv = document.createElement('div');
                         emailDiv.style.fontWeight = '600';
                         emailDiv.style.color = 'white';
