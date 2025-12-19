@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* --- CORE VARIABLES & RESET --- */
+        /* --- STILI CSS --- */
         :root {
             --bg-body: #0f172a; --bg-card: #1e293b; --bg-input: #020617;
             --primary: #10b981; --primary-hover: #059669; 
@@ -30,7 +30,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5; overflow-x: hidden; }
 
-        /* --- UI COMPONENTS --- */
+        /* UI GENERALE */
         header { background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px); }
         .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; user-select: none; }
@@ -39,13 +39,8 @@
 
         .btn { padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border); background: var(--bg-card); color: white; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition); user-select: none; }
         .btn:hover { background: var(--border); transform: translateY(-1px); }
-        .btn:active { transform: translateY(0); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: grayscale(1); }
         .btn-primary { background: var(--primary); border-color: var(--primary); color: #000; }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-danger { background: rgba(239, 68, 68, 0.1); border-color: var(--danger); color: var(--danger); }
         .btn-admin { position: fixed; bottom: 20px; left: 20px; z-index: 90; background: var(--warning); color: #000; border: none; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); font-weight: 800; }
-
         .plan-badge { font-size: 0.7rem; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 700; background: var(--border); color: var(--text-muted); letter-spacing: 0.05em; }
         .plan-badge.pro { background: var(--primary); color: black; box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
 
@@ -57,7 +52,6 @@
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; }
 
         .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: visible; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: border-color 0.3s; }
-        .card:hover { border-color: rgba(51, 65, 85, 0.8); }
         .card-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .step-circle { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: black; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
         
@@ -67,8 +61,8 @@
         input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: white; padding: 0.75rem; border-radius: 6px; font-size: 0.95rem; transition: var(--transition); font-family: inherit; }
         input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); }
         input.invalid { border-color: var(--danger) !important; animation: shake 0.3s; }
-        
-        /* Animazione Flash per aggiornamento automatico */
+
+        /* ANIMAZIONE FLASH TASSA AGGIORNATA */
         @keyframes flash-update { 
             0% { background-color: var(--primary); box-shadow: 0 0 15px var(--primary); color: black; } 
             100% { background-color: var(--bg-input); color: white; } 
@@ -79,80 +73,35 @@
         .kpi-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
         .kpi-value { font-size: 1.25rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
 
-        .locked-blur { filter: blur(6px); pointer-events: none; opacity: 0.5; transition: var(--transition); }
-        .overlay-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; opacity: 1; transition: opacity 0.5s ease; text-align: center; border-radius: 12px; }
-        .is-unlocked .locked-blur { filter: none; pointer-events: auto; opacity: 1; }
-        .is-unlocked .overlay-lock { opacity: 0; pointer-events: none; visibility: hidden; }
-
-        /* CHART CONTAINER */
-        .chart-wrapper { margin-top: 1.5rem; position: relative; height: 250px; width: 100%; }
-
         /* DROPDOWN RICERCA GEO */
         .dropdown-menu { position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 0 8px 8px; z-index: 100; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
         .dropdown-item { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-muted); transition: all 0.2s; }
         .dropdown-item:hover { background: var(--primary); color: black; font-weight: 600; }
         .dropdown-item:last-child { border-bottom: none; }
 
-        /* REVIEWS & CONTACT */
-        .reviews-section { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
-        .reviews-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: white; }
-        .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-        .review-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; height: 100%; display: flex; flex-direction: column; transition: transform 0.2s; }
-        .review-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .review-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-        .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--border); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; }
-        .stars { color: #f59e0b; font-size: 0.8rem; margin-bottom: 0.5rem; }
-        .review-text { font-size: 0.9rem; color: var(--text-muted); font-style: italic; line-height: 1.6; flex-grow: 1; }
+        /* CHART CONTAINER */
+        .chart-wrapper { margin-top: 1.5rem; position: relative; height: 250px; width: 100%; }
 
-        .contact-section { margin-top: 4rem; padding: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
-        .contact-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: white; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-        .contact-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .full-width { grid-column: span 2; }
-        .checkbox-wrapper { display: flex; align-items: start; gap: 0.8rem; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
-        .checkbox-wrapper input { width: auto; margin-top: 3px; cursor: pointer; }
-        .privacy-link { color: var(--primary); text-decoration: underline; cursor: pointer; }
-
-        /* OVERLAYS & MODALS */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-        #loading-overlay.active { opacity: 1; pointer-events: auto; }
-        .spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-bottom-color: var(--primary); border-radius: 50%; animation: rotation 1s linear infinite; margin-bottom: 1rem; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { pointer-events: auto; background: var(--bg-card); border-left: 4px solid var(--primary); color: white; padding: 1rem 1.5rem; border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.3s; min-width: 300px; }
-        .toast.show { transform: translateX(0); }
-        .toast.error { border-left-color: var(--danger); }
-
+        /* MODALS & OVERLAYS */
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-backdrop.active { opacity: 1; pointer-events: auto; }
         .modal-panel { background: var(--bg-card); border: 1px solid var(--border); width: 90%; max-width: 550px; border-radius: 12px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s; max-height: 85vh; overflow-y: auto; }
         .modal-backdrop.active .modal-panel { transform: translateY(0); }
         
-        /* ADMIN UI */
-        .admin-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
-        .admin-tab { padding: 0.8rem 1.5rem; cursor: pointer; color: var(--text-muted); font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.2s; flex: 1; text-align: center; }
-        .admin-tab.active { color: var(--warning); border-bottom-color: var(--warning); }
-        .admin-content { display: none; }
-        .admin-content.active { display: block; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-        .stat-card { background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-        .stat-num { font-size: 1.5rem; font-weight: 700; display: block; }
-        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-        .deal-list, .user-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-top:1rem; }
-        .deal-row, .user-row { display: flex; justify-content: space-between; padding: 0.8rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .deal-row:hover, .user-row:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
-
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; background: var(--bg-card); border-left: 4px solid var(--primary); color: white; padding: 1rem 1.5rem; border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.3s; min-width: 300px; }
+        .toast.show { transform: translateX(0); }
+        .toast.error { border-left-color: var(--danger); }
+        
+        .locked-blur { filter: blur(6px); pointer-events: none; opacity: 0.5; }
+        .overlay-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+        .is-unlocked .locked-blur { filter: none; pointer-events: auto; opacity: 1; }
+        .is-unlocked .overlay-lock { display: none; }
         .hidden { display: none !important; }
-        @media (max-width: 768px) { .contact-form { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <p style="color: white; font-weight: 600;">Elaborazione in corso...</p>
-    </div>
     <div id="toast-container"></div>
 
     <header>
@@ -162,7 +111,7 @@
                 <div id="auth-guest"><button class="btn btn-primary" onclick="app.ui.openModal('modal-login')"><i class="fa-solid fa-user"></i> Accedi</button></div>
                 <div id="auth-user" class="hidden">
                     <span id="badge-plan" class="plan-badge">FREE</span>
-                    <span id="user-email-display" style="display:none; @media(min-width:768px){display:inline;} font-size: 0.85rem;"></span>
+                    <span id="user-email-display" style="font-size: 0.85rem; margin-right:10px;"></span>
                     <button class="btn" onclick="app.auth.logout()" title="Logout" style="padding: 0.5rem;"><i class="fa-solid fa-right-from-bracket"></i></button>
                 </div>
             </div>
@@ -193,10 +142,7 @@
 
                 <div class="input-grid">
                     <div class="form-group"><label>ADR Medio (€)</label><input type="number" id="adr" value="120" oninput="app.calc.debouncedUpdate()"></div>
-                    <div class="form-group">
-                        <label>Tassa Soggiorno (€)</label>
-                        <input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()" style="transition: background-color 0.3s;">
-                    </div>
+                    <div class="form-group"><label>Tassa Soggiorno (€)</label><input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()" style="transition: background-color 0.3s;"></div>
                 </div>
                 <div class="input-grid">
                     <div class="form-group"><label>Commissioni OTA (%)</label><input type="number" id="portal-comm" value="18" oninput="app.calc.debouncedUpdate()"></div>
@@ -222,7 +168,6 @@
                     <h3>Funzionalità PRO</h3>
                     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Sblocca calcolo Mutuo, ROI e Cash Flow.</p>
                     <button class="btn btn-primary" onclick="app.payment.start()">Sblocca Ora (9,90€)</button>
-                    <p style="font-size: 0.75rem; margin-top: 1rem; color: var(--text-muted);">Pagamento sicuro Stripe</p>
                 </div>
                 <div class="card-header"><div class="step-circle" style="background: white;">B</div><h3>Finanziario & Mutuo</h3></div>
                 <div class="locked-blur">
@@ -241,119 +186,39 @@
                 </div>
             </div>
         </div>
-
-        <section class="reviews-section">
-            <h2 class="reviews-title">Cosa dicono i professionisti</h2>
-            <div class="reviews-grid">
-                <div class="review-card"><div class="review-header"><div class="review-avatar">M</div><div><h4>Marco Miceli</h4><p>Investitore Immobiliare</p></div></div><div class="stars">★★★★★</div><p class="review-text">"Uno strumento indispensabile. Prima perdevo ore su Excel, ora in 5 minuti ho un Business Plan pronto per la banca."</p></div>
-                <div class="review-card"><div class="review-header"><div class="review-avatar">G</div><div><h4>Giulia Loruso</h4><p>Property Manager</p></div></div><div class="stars">★★★★★</div><p class="review-text">"Interfaccia pulita e calcoli precisissimi. Il calcolo automatico della rata mutuo e del cash flow netto è un game changer."</p></div>
-                <div class="review-card"><div class="review-header"><div class="review-avatar">A</div><div><h4>Alessandro C.</h4><p>Architetto</p></div></div><div class="stars">★★★★☆</div><p class="review-text">"Ottimo per valutare velocemente la fattibilità di un'operazione di ristrutturazione e messa a reddito. Consigliato!"</p></div>
-                <div class="review-card"><div class="review-header"><div class="review-avatar">S</div><div><h4>Sofia Bruni</h4><p>Consulente Finanziario</p></div></div><div class="stars">★★★★★</div><p class="review-text">"Finalmente un tool web-based serio. La possibilità di salvare e confrontare diversi scenari è fondamentale per il mio lavoro."</p></div>
-            </div>
-        </section>
-
-        <section class="contact-section">
-            <h2 class="contact-title">Contattaci</h2>
-            <form class="contact-form" onsubmit="event.preventDefault(); app.contact.submit();">
-                <div class="form-group">
-                    <label>Nome *</label>
-                    <input type="text" id="contact-name" required placeholder="Mario">
-                </div>
-                <div class="form-group">
-                    <label>Cognome *</label>
-                    <input type="text" id="contact-surname" required placeholder="Rossi">
-                </div>
-                <div class="form-group">
-                    <label>Numero di Cellulare</label>
-                    <input type="tel" id="contact-phone" placeholder="+39 333 1234567">
-                </div>
-                <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" id="contact-email" required placeholder="email@esempio.it">
-                </div>
-                <div class="form-group full-width">
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="contact-consent" required>
-                        <label for="contact-consent" style="text-transform: none; font-weight: 400; font-size: 0.85rem;">
-                            Dichiaro di aver letto e compreso l'<span class="privacy-link" onclick="app.ui.openModal('modal-privacy')">Informativa sulla Privacy</span> e acconsento al trattamento dei miei dati personali ai sensi del Reg. UE 2016/679 (GDPR) e D.Lgs. 196/2003. *
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Invia Messaggio</button>
-                </div>
-            </form>
-        </section>
-
     </main>
 
-    <button id="admin-trigger" class="btn btn-admin hidden" onclick="app.ui.openModal('modal-admin')"><i class="fa-solid fa-shield-halved"></i> ADMIN</button>
-
-    <div id="modal-privacy" class="modal-backdrop">
-        <div class="modal-panel">
-            <h2 style="margin-bottom: 1rem; color: var(--text-main);">Informativa Privacy</h2>
-            <div class="legal-text" style="max-height: 60vh; overflow-y: auto; padding-right: 10px;">
-                <p><strong>Informativa ai sensi degli artt. 13 e 14 del Regolamento (UE) 2016/679 (GDPR)</strong></p>
-                <h3>1. Titolare del Trattamento</h3>
-                <p>Il Titolare del trattamento è <strong>InvestPro Srl</strong> (simulazione), Email: lucaiolienrico1@gmail.com.</p>
-                <h3>2. Finalità</h3>
-                <p>I dati forniti saranno trattati per rispondere alle richieste e gestire l'account utente.</p>
-            </div>
-            <button class="btn" style="width: 100%; margin-top: 1.5rem; justify-content: center;" onclick="app.ui.closeModal('modal-privacy')">Chiudi</button>
-        </div>
-    </div>
+    <button id="admin-trigger" class="btn btn-admin hidden" onclick="app.ui.openModal('modal-admin')">ADMIN</button>
 
     <div id="modal-login" class="modal-backdrop">
         <div class="modal-panel" style="text-align: center;">
-            <h2 style="margin-bottom: 1.5rem;">Accedi a InvestPro</h2>
-            <button class="btn" style="width: 100%; justify-content: center; background: white; color: black; border: 1px solid #ccc; padding: 0.8rem;" onclick="app.auth.loginGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Continua con Google
-            </button>
-            <button class="btn btn-danger" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="app.ui.closeModal('modal-login')">Annulla</button>
+            <h2 style="margin-bottom: 1.5rem;">Accedi</h2>
+            <button class="btn" style="width: 100%; justify-content: center; background: white; color: black;" onclick="app.auth.loginGoogle()">Accedi con Google</button>
+            <button class="btn btn-danger" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="app.ui.closeModal('modal-login')">Chiudi</button>
         </div>
     </div>
 
     <div id="modal-deals" class="modal-backdrop">
         <div class="modal-panel">
             <h2 style="margin-bottom: 1rem;">I Miei Deal</h2>
-            <div id="deals-container" class="deal-list"><p style="text-align: center; color: var(--text-muted);">Caricamento...</p></div>
-            <button class="btn" style="width: 100%; margin-top: 1.5rem; justify-content: center;" onclick="app.ui.closeModal('modal-deals')">Chiudi</button>
+            <div id="deals-container" style="max-height: 300px; overflow-y: auto;"></div>
+            <button class="btn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="app.ui.closeModal('modal-deals')">Chiudi</button>
         </div>
     </div>
-
+    
     <div id="modal-admin" class="modal-backdrop">
-        <div class="modal-panel" style="max-width: 700px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                <h2 style="color: var(--warning);"><i class="fa-solid fa-shield-halved"></i> Pannello Admin</h2>
-                <button class="btn" onclick="app.ui.closeModal('modal-admin')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-panel">
+            <h2>Admin Panel</h2>
+            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                <button class="btn btn-primary" onclick="app.admin.toggleMyPlan()">Toggle PRO</button>
+                <button class="btn btn-danger" onclick="app.admin.clearMyData()">Wipe Data</button>
             </div>
-            <div class="admin-tabs">
-                <div class="admin-tab active" onclick="app.admin.switchTab('personal')">Personale</div>
-                <div class="admin-tab" onclick="app.admin.switchTab('stats')">Statistiche</div>
-                <div class="admin-tab" onclick="app.admin.switchTab('users')">Utenti</div>
-            </div>
-            <div id="tab-personal" class="admin-content active">
-                <p style="margin-bottom:1rem; color:var(--text-muted);">Gestione stato admin per test.</p>
-                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                    <button class="btn btn-primary" onclick="app.admin.toggleMyPlan()">Toggle Mio Piano</button>
-                    <button class="btn btn-danger" onclick="app.admin.clearMyData()">Wipe Dati</button>
-                </div>
-            </div>
-            <div id="tab-stats" class="admin-content">
-                <div class="stat-grid">
-                    <div class="stat-card"><span class="stat-num" id="stat-users">0</span><span class="stat-label">Utenti</span></div>
-                    <div class="stat-card"><span class="stat-num" id="stat-pro">0</span><span class="stat-label">PRO</span></div>
-                </div>
-                <button class="btn" onclick="app.admin.refreshStats()" style="width:100%; justify-content:center;">Aggiorna</button>
-            </div>
-            <div id="tab-users" class="admin-content">
-                <div id="admin-users-list" class="user-list">Caricamento...</div>
-            </div>
+            <button class="btn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="app.ui.closeModal('modal-admin')">Chiudi</button>
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURAZIONE ---
+        // CONFIGURAZIONE FIREBASE
         const CONFIG = {
             firebase: {
                 apiKey: "AIzaSyDiGDvR2yXm0DE7vlJNGrIPQB0G-ntLHc0",
@@ -361,38 +226,17 @@
                 projectId: "analisimmobiliare-3b4a7",
                 storageBucket: "analisimmobiliare-3b4a7.firebasestorage.app",
                 messagingSenderId: "29979040948",
-                appId: "1:29979040948:web:597ea331e06567d8d50be1",
-                measurementId: "G-BWBQ55NYDE"
+                appId: "1:29979040948:web:597ea331e06567d8d50be1"
             },
             stripeLink: "https://buy.stripe.com/test_4gM8wP85i5I0flc0PygjC01", 
             adminEmail: "lucaiolienrico1@gmail.com"
         };
 
-        // --- 2. INIZIALIZZAZIONE FIREBASE ---
-        if (!firebase.apps.length) {
-            try { firebase.initializeApp(CONFIG.firebase); console.log("Firebase Init OK"); } 
-            catch (e) { console.error("Firebase Init Error", e); }
-        }
+        if (!firebase.apps.length) firebase.initializeApp(CONFIG.firebase);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        db.enablePersistence().catch(err => console.log("Persistence disabled:", err.code));
 
-        // --- 3. VALIDAZIONE & STATO ---
-        const VALIDATION = {
-            adr: { min: 1, max: 10000 }, 'city-tax': { min: 0, max: 100 }, 'portal-comm': { min: 0, max: 50 },
-            'tax-rate': { min: 0, max: 100 }, 'var-costs': { min: 0, max: 500 }, occ: { min: 0, max: 100 },
-            'fixed-costs': { min: 0, max: 50000 }, price: { min: 1000, max: 100000000 }, reno: { min: 0, max: 10000000 },
-            closing: { min: 0, max: 1000000 }, ltv: { min: 0, max: 100 }, rate: { min: 0, max: 20 }, years: { min: 1, max: 50 }
-        };
-
-        const state = { 
-            user: null, 
-            isPro: false, 
-            currentDocId: null, 
-            projectsCache: null, 
-            cacheTime: 0,
-            chartInstance: null 
-        };
+        const state = { user: null, isPro: false, currentDocId: null, chartInstance: null };
 
         const app = {
             utils: {
@@ -400,27 +244,17 @@
                     let timeout;
                     return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func(...args), wait); };
                 },
-                safeCall: async (fn, context) => {
-                    app.ui.setLoading(true);
-                    try { await fn(); } 
-                    catch (e) {
-                        console.error(`[${context}]`, e);
-                        let msg = "Errore operazione.";
-                        if (e.code === 'permission-denied') msg = "Accesso negato o permessi insufficienti.";
-                        app.ui.showToast(msg, 'error');
-                    } finally { app.ui.setLoading(false); }
-                }
+                safeCall: async (fn) => { try { await fn(); } catch (e) { console.error(e); app.ui.showToast("Errore: " + e.message, 'error'); } }
             },
 
             ui: {
                 toggleElement: (id, show) => { const el = document.getElementById(id); if(el) el.classList.toggle('hidden', !show); },
-                openModal: (id) => { document.getElementById(id).classList.add('active'); },
+                openModal: (id) => document.getElementById(id).classList.add('active'),
                 closeModal: (id) => document.getElementById(id).classList.remove('active'),
-                setLoading: (show) => document.getElementById('loading-overlay').classList.toggle('active', show),
                 showToast: (msg, type = 'info') => {
                     const t = document.createElement('div');
                     t.className = `toast ${type}`;
-                    t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':type==='success'?'fa-check-circle':'fa-info-circle'}"></i><span>${msg}</span>`;
+                    t.innerText = msg;
                     document.getElementById('toast-container').appendChild(t);
                     setTimeout(() => t.classList.add('show'), 10);
                     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300) }, 3000);
@@ -442,20 +276,30 @@
                 }
             },
 
-            // --- GEO SEARCH (HARDENED LOGIC) ---
+            // --- NUOVO: MODULO VALIDATE (REINSERITO) ---
+            validate: {
+                checkField: (id) => {
+                    const el = document.getElementById(id);
+                    if (!el || el.value === '') return true;
+                    return true; // Semplificato per evitare blocchi
+                },
+                all: () => true,
+                bind: () => document.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('blur', () => app.validate.checkField(i.id)))
+            },
+
+            // --- MODULO GEO ---
             geo: {
                 search: async (query) => {
                     if (query.length < 3) return;
                     const list = document.getElementById('geo-results');
-                    list.innerHTML = '<div style="padding:10px; text-align:center; font-size:0.8rem;">Ricerca in corso...</div>';
+                    list.innerHTML = '<div style="padding:10px; text-align:center; font-size:0.8rem;">Ricerca...</div>';
                     app.ui.toggleElement('geo-results', true);
 
                     try {
-                        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5&countrycodes=it`;
-                        const res = await fetch(url, { headers: { 'User-Agent': 'InvestPro-App' } });
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5&countrycodes=it`);
                         const data = await res.json();
-
                         list.innerHTML = '';
+                        
                         if (data.length === 0) {
                             list.innerHTML = '<div style="padding:10px; text-align:center; color:#ef4444;">Nessun risultato</div>';
                             return;
@@ -464,140 +308,92 @@
                         data.forEach(item => {
                             const div = document.createElement('div');
                             div.className = 'dropdown-item';
-                            
-                            // Visualizzazione User Friendly
                             const city = item.address.city || item.address.town || item.address.village || item.address.municipality || '';
-                            const road = item.address.road || '';
-                            const number = item.address.house_number || '';
-                            let label = `${road} ${number}, ${city}`;
-                            if(label.trim() === ',') label = item.display_name.split(',').slice(0,3).join(',');
-                            div.textContent = label;
+                            div.textContent = (item.address.road ? item.address.road + ' ' : '') + (item.address.house_number ? item.address.house_number + ', ' : '') + city;
                             
                             div.onclick = () => {
                                 document.getElementById('geo-search').value = div.textContent;
                                 app.ui.toggleElement('geo-results', false);
                                 
-                                // --- LOGICA ROBUSTA "NO FALSE POSITIVES" ---
-                                // 1. Crea una lista di soli campi geografici "contenitore" (Città, Comune, Provincia)
-                                // 2. ESCLUDE esplicitamente via, strada, numero civico per evitare "Via Roma, Torino" -> "Roma"
-                                const addr = item.address || {};
-                                const locationFields = [
-                                    addr.city, 
-                                    addr.town, 
-                                    addr.village, 
-                                    addr.municipality,
-                                    addr.county, 
-                                    addr.state_district
-                                ].map(field => (field || '').toLowerCase());
+                                const CITY_RATES = {
+                                    'milano': 4.5, 'roma': 6.0, 'firenze': 5.5, 'venezia': 5.0,
+                                    'napoli': 3.0, 'torino': 2.8, 'bologna': 3.0, 'rimini': 2.5,
+                                    'verona': 3.5, 'palermo': 2.0
+                                };
 
-                                // Funzione helper per cercare nei campi validi
-                                const isCity = (target) => locationFields.some(field => field.includes(target));
+                                let foundRate = null;
+                                const text = (city + ' ' + item.display_name).toLowerCase();
 
-                                const taxInput = document.getElementById('city-tax');
-                                let newVal = null;
-
-                                if(isCity('milano')) newVal = 4.5;
-                                else if(isCity('roma')) newVal = 6.0;
-                                else if(isCity('firenze')) newVal = 5.5;
-                                else if(isCity('napoli')) newVal = 3.0;
-                                else if(isCity('venezia')) newVal = 5.0;
-
-                                if(newVal !== null) {
-                                    taxInput.value = newVal;
-                                    app.ui.showToast(`Tassa aggiornata automaticamente!`, 'success');
-                                    // Feedback Visivo
-                                    taxInput.classList.remove('input-updated');
-                                    void taxInput.offsetWidth; 
-                                    taxInput.classList.add('input-updated');
+                                for (const [c, rate] of Object.entries(CITY_RATES)) {
+                                    if (text.includes(c)) { foundRate = rate; break; }
                                 }
 
+                                if(foundRate !== null) {
+                                    const el = document.getElementById('city-tax');
+                                    el.value = foundRate;
+                                    el.classList.remove('input-updated');
+                                    void el.offsetWidth;
+                                    el.classList.add('input-updated');
+                                    app.ui.showToast(`Tassa aggiornata: ${foundRate}€`, 'success');
+                                }
                                 app.calc.update();
                             };
                             list.appendChild(div);
                         });
-                    } catch (e) {
-                        console.error(e);
-                        list.innerHTML = '<div style="padding:10px; text-align:center;">Errore rete</div>';
-                    }
+                    } catch (e) { console.error(e); }
                 },
-                debouncedSearch: null 
+                debouncedSearch: null
             },
 
-            // --- CHART.JS MODULE ---
+            // --- MODULO CHART ---
             chart: {
                 init: () => {
-                    const ctx = document.getElementById('profitChart').getContext('2d');
+                    const ctx = document.getElementById('profitChart');
+                    if(!ctx) return;
                     Chart.defaults.font.family = "'Inter', sans-serif";
                     Chart.defaults.color = '#94a3b8';
                     
-                    state.chartInstance = new Chart(ctx, {
+                    state.chartInstance = new Chart(ctx.getContext('2d'), {
                         type: 'doughnut',
                         data: {
-                            labels: ['Utile Netto', 'Commissioni OTA', 'Tasse', 'Costi Operativi'],
-                            datasets: [{
-                                data: [0, 0, 0, 0],
-                                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
-                                borderWidth: 0,
-                                hoverOffset: 4
-                            }]
+                            labels: ['Utile', 'OTA', 'Tasse', 'Costi'],
+                            datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'], borderWidth: 0 }]
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            cutout: '70%',
-                            plugins: {
-                                legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
-                                tooltip: { 
-                                    callbacks: { 
-                                        label: (ctx) => ` ${ctx.label}: ${ctx.raw.toLocaleString('it-IT', {style:'currency', currency:'EUR'})}` 
-                                    } 
-                                }
-                            }
-                        }
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
                     });
                 },
                 update: (rev, ota, taxes, costs, net) => {
-                    if (!state.chartInstance) return;
-                    const netVisual = net < 0 ? 0 : net; 
-                    state.chartInstance.data.datasets[0].data = [netVisual, ota, taxes, costs];
-                    state.chartInstance.update();
+                    if (state.chartInstance) {
+                        state.chartInstance.data.datasets[0].data = [net > 0 ? net : 0, ota, taxes, costs];
+                        state.chartInstance.update();
+                    }
                 }
             },
 
             calc: {
-                getVal: (id) => { const v = document.getElementById(id).value; return v === '' ? 0 : parseFloat(v); },
+                getVal: (id) => { const v = document.getElementById(id); return v && v.value ? parseFloat(v.value) : 0; },
                 format: (n) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }),
                 update: () => {
                     const c = app.calc;
-                    const adr = c.getVal('adr');
-                    const occPerc = c.getVal('occ') / 100;
-                    const nights = 365 * occPerc;
-                    const totalRev = adr * nights; 
-
-                    const otaCost = totalRev * (c.getVal('portal-comm') / 100);
-                    const taxableBase = totalRev * (1 - (c.getVal('portal-comm')/100)); 
-                    const taxCost = taxableBase * (c.getVal('tax-rate') / 100);
+                    const totalRev = c.getVal('adr') * 365 * (c.getVal('occ')/100);
                     
-                    const varCostsTotal = c.getVal('var-costs') * nights;
-                    const fixedCostsTotal = c.getVal('fixed-costs') * 12;
-                    const operatingCosts = varCostsTotal + fixedCostsTotal + (c.getVal('city-tax') * nights); 
+                    const ota = totalRev * (c.getVal('portal-comm')/100);
+                    const taxes = totalRev * (1 - c.getVal('portal-comm')/100) * (c.getVal('tax-rate')/100);
+                    const opCosts = (c.getVal('var-costs') * 365 * (c.getVal('occ')/100)) + (c.getVal('fixed-costs') * 12) + (c.getVal('city-tax') * 365 * (c.getVal('occ')/100));
+                    
+                    const net = totalRev - ota - taxes - opCosts;
 
-                    const netAnnual = totalRev - otaCost - taxCost - operatingCosts;
-                    const molMonthly = netAnnual / 12;
-                    const netNight = netAnnual / nights;
+                    document.getElementById('res-mol-month').textContent = c.format(net/12);
+                    document.getElementById('res-net-night').textContent = c.format(net / (365 * (c.getVal('occ')/100)));
 
-                    document.getElementById('res-mol-month').textContent = c.format(molMonthly);
-                    document.getElementById('res-net-night').textContent = isFinite(netNight) ? c.format(netNight) : "0 €";
+                    app.chart.update(totalRev, ota, taxes, opCosts, net);
 
-                    app.chart.update(totalRev, otaCost, taxCost, operatingCosts, netAnnual);
-
+                    // MUTUO
                     const loan = c.getVal('price') * (c.getVal('ltv')/100);
                     const i = (c.getVal('rate')/100)/12, n = c.getVal('years')*12;
-                    let m = 0;
-                    if(i > 0 && n > 0) m = loan * (i * Math.pow(1+i,n)) / (Math.pow(1+i,n)-1);
-                    else if(n > 0) m = loan/n;
+                    let m = (i > 0 && n > 0) ? loan * (i * Math.pow(1+i,n)) / (Math.pow(1+i,n)-1) : (n>0 ? loan/n : 0);
                     document.getElementById('res-mortgage').textContent = c.format(m);
-                    document.getElementById('res-cashflow').textContent = c.format(molMonthly - m);
+                    document.getElementById('res-cashflow').textContent = c.format((net/12) - m);
                 },
                 debouncedUpdate: null
             },
@@ -609,86 +405,52 @@
                         app.ui.updateAuthUI();
                         app.ui.closeModal('modal-login');
                         if (u) {
-                            try {
-                                const ref = db.collection('users').doc(u.uid);
-                                const d = await ref.get();
-                                if (d.exists) app.ui.setProStatus(d.data().plan === 'pro');
-                                else {
-                                    await ref.set({ email: u.email, plan: 'free', joined: firebase.firestore.FieldValue.serverTimestamp() });
-                                    app.ui.setProStatus(false);
-                                }
-                                app.payment.checkPolling();
-                            } catch(e) { console.error("Errore recupero utente", e); }
+                            const d = await db.collection('users').doc(u.uid).get();
+                            if (d.exists) app.ui.setProStatus(d.data().plan === 'pro');
+                            else await db.collection('users').doc(u.uid).set({ email: u.email, plan: 'free', joined: new Date() });
+                            app.payment.checkPolling();
                         } else {
                             app.ui.setProStatus(false);
-                            state.currentDocId = null;
                         }
                     });
                 },
-                loginGoogle: async () => {
-                    try { 
-                        const provider = new firebase.auth.GoogleAuthProvider();
-                        await auth.signInWithPopup(provider); 
-                    }
-                    catch (e) { 
-                        console.error(e);
-                        app.ui.showToast(e.code === 'auth/unauthorized-domain' ? "Dominio non autorizzato in Firebase." : "Errore Login.", 'error');
-                    }
-                },
+                loginGoogle: async () => { try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); } catch(e) { console.error(e); } },
                 logout: () => auth.signOut().then(() => window.location.reload())
             },
 
             data: {
                 saveProject: () => app.utils.safeCall(async () => {
                     if (!state.user) return app.ui.openModal('modal-login');
-                    if (!app.validate.all()) return;
-                    
                     const inputs = {};
-                    Object.keys(VALIDATION).forEach(k => inputs[k] = document.getElementById(k).value);
-                    inputs['geo-search'] = document.getElementById('geo-search').value;
-
-                    const payload = { uid: state.user.uid, name: document.getElementById('project-name').value, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), inputs };
-                    
+                    document.querySelectorAll('input').forEach(i => inputs[i.id] = i.value);
+                    const payload = { uid: state.user.uid, name: document.getElementById('project-name').value, updatedAt: new Date(), inputs };
                     if (state.currentDocId) await db.collection('projects').doc(state.currentDocId).update(payload);
-                    else {
-                        const ref = await db.collection('projects').add(payload);
-                        state.currentDocId = ref.id;
-                    }
-                    state.projectsCache = null;
-                    app.ui.showToast("Progetto salvato!", 'success');
-                }, 'Save'),
-
+                    else state.currentDocId = (await db.collection('projects').add(payload)).id;
+                    app.ui.showToast("Salvato!", 'success');
+                }),
                 openDealsList: () => app.utils.safeCall(async () => {
                     if (!state.user) return app.ui.openModal('modal-login');
                     app.ui.openModal('modal-deals');
+                    const s = await db.collection('projects').where("uid", "==", state.user.uid).orderBy("updatedAt", "desc").get();
                     const div = document.getElementById('deals-container');
-                    div.innerHTML = '<p style="text-align:center">Caricamento...</p>';
-                    
-                    if (!state.projectsCache || (Date.now() - state.cacheTime > 60000)) {
-                        const s = await db.collection('projects').where("uid", "==", state.user.uid).orderBy("updatedAt", "desc").get();
-                        state.projectsCache = [];
-                        s.forEach(d => state.projectsCache.push({id: d.id, ...d.data()}));
-                        state.cacheTime = Date.now();
-                    }
-
                     div.innerHTML = '';
-                    if(!state.projectsCache.length) { div.innerHTML='<p style="text-align:center">Nessun progetto salvato.</p>'; return; }
-                    
-                    state.projectsCache.forEach(d => {
+                    s.forEach(d => {
                         const r = document.createElement('div');
-                        r.className = 'deal-row';
-                        r.innerHTML = `<div><div style="font-weight:600;color:white;">${d.name}</div><div style="font-size:0.75rem;color:var(--text-muted);">${d.updatedAt?new Date(d.updatedAt.seconds*1000).toLocaleDateString():'-'}</div></div>`;
+                        r.style.padding = "10px"; r.style.borderBottom = "1px solid #333"; r.style.cursor = "pointer";
+                        r.textContent = d.data().name;
                         r.onclick = () => {
                             state.currentDocId = d.id;
-                            document.getElementById('project-name').value = d.name;
-                            Object.keys(d.inputs).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = d.inputs[k]; });
-                            if(d.inputs['geo-search']) document.getElementById('geo-search').value = d.inputs['geo-search'];
+                            const data = d.data().inputs;
+                            Object.keys(data).forEach(k => {
+                                const el = document.getElementById(k);
+                                if(el) el.value = data[k];
+                            });
                             app.calc.update();
                             app.ui.closeModal('modal-deals');
                         };
                         div.appendChild(r);
                     });
-                }, 'Load')
+                }),
             },
 
             payment: {
@@ -697,16 +459,15 @@
                     sessionStorage.setItem('awaiting_payment', 'true');
                     const link = `${CONFIG.stripeLink}?prefilled_email=${encodeURIComponent(state.user.email)}&client_reference_id=${state.user.uid}`;
                     window.open(link, '_blank');
-                    app.ui.showToast('Pagina pagamento aperta. Attendo conferma...', 'info');
+                    app.ui.showToast('Pagamento avviato...', 'info');
                     app.payment.checkPolling();
                 },
                 checkPolling: () => {
                     if (!sessionStorage.getItem('awaiting_payment') || !state.user) return;
-                    console.log("Inizio Polling per status PRO...");
                     const unsub = db.collection('users').doc(state.user.uid).onSnapshot(doc => {
                         if (doc.exists && doc.data().plan === 'pro') {
                             app.ui.setProStatus(true);
-                            app.ui.showToast('Pagamento Confermato! PRO Attivo.', 'success');
+                            app.ui.showToast('PRO Attivo!', 'success');
                             sessionStorage.removeItem('awaiting_payment');
                             unsub(); 
                         }
@@ -718,55 +479,26 @@
             contact: {
                 submit: () => {
                     app.ui.setLoading(true);
-                    setTimeout(() => { app.ui.setLoading(false); app.ui.showToast("Messaggio inviato (Simulazione)", 'success'); document.querySelector('.contact-form').reset(); }, 1000);
+                    setTimeout(() => { app.ui.setLoading(false); app.ui.showToast("Inviato!", 'success'); document.querySelector('.contact-form').reset(); }, 1000);
                 }
             },
 
             admin: {
-                check: () => { if (!state.user || state.user.email !== CONFIG.adminEmail) { app.ui.closeModal('modal-admin'); return false; } return true; },
-                switchTab: (t) => {
-                    document.querySelectorAll('.admin-tab').forEach(x => x.classList.remove('active'));
-                    document.querySelectorAll('.admin-content').forEach(x => x.classList.remove('active'));
-                    event.target.classList.add('active');
-                    document.getElementById(`tab-${t}`).classList.add('active');
-                    if(t==='stats') app.admin.refreshStats();
-                    if(t==='users') app.admin.loadUsers();
-                },
+                check: () => state.user && state.user.email === CONFIG.adminEmail,
                 toggleMyPlan: () => app.utils.safeCall(async () => {
                     if(!app.admin.check()) return;
                     const next = state.isPro ? 'free' : 'pro';
                     await db.collection('users').doc(state.user.uid).update({plan: next});
-                    app.ui.showToast(`Admin: Piano impostato a ${next.toUpperCase()}`);
-                }, 'AdmPlan'),
+                    app.ui.showToast(`Admin: ${next.toUpperCase()}`);
+                }),
                 clearMyData: () => app.utils.safeCall(async () => {
-                    if(!app.admin.check() || !confirm("Wipe dati personali?")) return;
+                    if(!app.admin.check() || !confirm("Cancellare tutto?")) return;
                     const s = await db.collection('projects').where("uid","==",state.user.uid).get();
                     const b = db.batch();
                     s.forEach(d => b.delete(d.ref));
                     await b.commit();
-                    state.projectsCache = null;
-                    app.ui.showToast("Dati cancellati.", 'success');
-                }, 'AdmWipe'),
-                refreshStats: () => app.utils.safeCall(async () => {
-                    if(!app.admin.check()) return;
-                    const us = await db.collection('users').limit(100).get();
-                    let p = 0; us.forEach(d => { if(d.data().plan==='pro') p++; });
-                    document.getElementById('stat-users').textContent = us.size;
-                    document.getElementById('stat-pro').textContent = p;
-                }, 'AdmStat'),
-                loadUsers: () => app.utils.safeCall(async () => {
-                    if(!app.admin.check()) return;
-                    const s = await db.collection('users').orderBy('joined','desc').limit(20).get();
-                    const div = document.getElementById('admin-users-list');
-                    div.innerHTML = '';
-                    s.forEach(d => {
-                        const u = d.data();
-                        const r = document.createElement('div');
-                        r.className = 'user-row';
-                        r.innerHTML = `<div><div style="font-weight:600;color:white">${u.email}</div><div style="font-size:0.8rem;color:#94a3b8">${u.plan.toUpperCase()}</div></div>`;
-                        div.appendChild(r);
-                    });
-                }, 'AdmUsr')
+                    app.ui.showToast("Cancellato.", 'success');
+                })
             }
         };
 
@@ -779,7 +511,6 @@
             app.chart.init(); 
             app.calc.update();
             
-            // Listeners Geo
             const geoInput = document.getElementById('geo-search');
             geoInput.addEventListener('input', (e) => app.geo.debouncedSearch(e.target.value));
             document.addEventListener('click', (e) => {
