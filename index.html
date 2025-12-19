@@ -56,7 +56,7 @@
         main { padding: 2rem 1rem; max-width: 1400px; margin: 0 auto; width: 100%; flex: 1; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; }
 
-        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: border-color 0.3s; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: visible; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: border-color 0.3s; }
         .card:hover { border-color: rgba(51, 65, 85, 0.8); }
         .card-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .step-circle { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: black; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
@@ -73,17 +73,18 @@
         .kpi-value { font-size: 1.25rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
 
         .locked-blur { filter: blur(6px); pointer-events: none; opacity: 0.5; transition: var(--transition); }
-        .overlay-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; opacity: 1; transition: opacity 0.5s ease; text-align: center; }
+        .overlay-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; opacity: 1; transition: opacity 0.5s ease; text-align: center; border-radius: 12px; }
         .is-unlocked .locked-blur { filter: none; pointer-events: auto; opacity: 1; }
         .is-unlocked .overlay-lock { opacity: 0; pointer-events: none; visibility: hidden; }
 
         /* CHART CONTAINER */
-        .chart-wrapper {
-            margin-top: 1.5rem;
-            position: relative;
-            height: 250px; /* Altezza fissa per il grafico */
-            width: 100%;
-        }
+        .chart-wrapper { margin-top: 1.5rem; position: relative; height: 250px; width: 100%; }
+
+        /* DROPDOWN RICERCA GEO */
+        .dropdown-menu { position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 0 8px 8px; z-index: 100; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+        .dropdown-item { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-muted); transition: all 0.2s; }
+        .dropdown-item:hover { background: var(--primary); color: black; font-weight: 600; }
+        .dropdown-item:last-child { border-bottom: none; }
 
         /* REVIEWS & CONTACT */
         .reviews-section { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
@@ -174,6 +175,15 @@
             <div class="card">
                 <div class="card-header"><div class="step-circle">A</div><h3>Conto Economico</h3></div>
                 
+                <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
+                    <label>Indirizzo Immobile (Ricerca Smart)</label>
+                    <div style="position: relative;">
+                        <input type="text" id="geo-search" placeholder="Es. Via Roma 10, Milano" autocomplete="off" style="padding-right: 40px;">
+                        <i class="fa-solid fa-magnifying-glass" style="position: absolute; right: 12px; top: 12px; color: var(--text-muted); pointer-events: none;"></i>
+                    </div>
+                    <div id="geo-results" class="dropdown-menu hidden"></div>
+                </div>
+
                 <div class="input-grid">
                     <div class="form-group"><label>ADR Medio (€)</label><input type="number" id="adr" value="120" oninput="app.calc.debouncedUpdate()"></div>
                     <div class="form-group"><label>Tassa Soggiorno (€)</label><input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()"></div>
@@ -371,7 +381,7 @@
             currentDocId: null, 
             projectsCache: null, 
             cacheTime: 0,
-            chartInstance: null // Riferimento al grafico Chart.js
+            chartInstance: null 
         };
 
         const app = {
@@ -390,31 +400,6 @@
                         app.ui.showToast(msg, 'error');
                     } finally { app.ui.setLoading(false); }
                 }
-            },
-
-            validate: {
-                checkField: (id) => {
-                    const el = document.getElementById(id);
-                    if (!el || el.value === '') return true;
-                    const val = parseFloat(el.value);
-                    const rule = VALIDATION[id];
-                    const isValid = !isNaN(val) && val >= rule.min && val <= rule.max;
-                    el.classList.toggle('invalid', !isValid);
-                    return isValid;
-                },
-                all: () => {
-                    let valid = true;
-                    Object.keys(VALIDATION).forEach(k => {
-                        const el = document.getElementById(k);
-                        if (el && (el.value === '' || !app.validate.checkField(k))) {
-                            el.classList.add('invalid');
-                            valid = false;
-                        }
-                    });
-                    if (!valid) app.ui.showToast("Controlla i campi evidenziati in rosso.", 'error');
-                    return valid;
-                },
-                bind: () => document.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('blur', () => app.validate.checkField(i.id)))
             },
 
             ui: {
@@ -447,24 +432,73 @@
                 }
             },
 
-            // --- NUOVO MODULO GRAFICI ---
+            // --- NUOVO MODULO: GEOLOCALIZZAZIONE GRATUITA ---
+            geo: {
+                search: async (query) => {
+                    if (query.length < 3) return;
+                    const list = document.getElementById('geo-results');
+                    list.innerHTML = '<div style="padding:10px; text-align:center; font-size:0.8rem;">Ricerca in corso...</div>';
+                    app.ui.toggleElement('geo-results', true);
+
+                    try {
+                        // Nominatim API (OpenStreetMap)
+                        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5&countrycodes=it`;
+                        const res = await fetch(url, { headers: { 'User-Agent': 'InvestPro-App' } });
+                        const data = await res.json();
+
+                        list.innerHTML = '';
+                        if (data.length === 0) {
+                            list.innerHTML = '<div style="padding:10px; text-align:center; color:#ef4444;">Nessun risultato</div>';
+                            return;
+                        }
+
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'dropdown-item';
+                            // Formattazione Indirizzo
+                            const city = item.address.city || item.address.town || item.address.village || '';
+                            const road = item.address.road || '';
+                            const number = item.address.house_number || '';
+                            const label = `${road} ${number}, ${city}`;
+                            div.textContent = label.trim() !== ',' ? label : item.display_name.split(',').slice(0,3).join(',');
+                            
+                            div.onclick = () => {
+                                document.getElementById('geo-search').value = div.textContent;
+                                app.ui.toggleElement('geo-results', false);
+                                
+                                // LOGICA SMART: Aggiorna Tassa Soggiorno in base alla città
+                                const cityLower = city.toLowerCase();
+                                const taxInput = document.getElementById('city-tax');
+                                if(cityLower.includes('milano')) { taxInput.value = 4.5; app.ui.showToast('Tassa impostata per Milano'); }
+                                else if(cityLower.includes('roma')) { taxInput.value = 6.0; app.ui.showToast('Tassa impostata per Roma'); }
+                                else if(cityLower.includes('firenze')) { taxInput.value = 5.5; app.ui.showToast('Tassa impostata per Firenze'); }
+                                
+                                app.calc.update();
+                            };
+                            list.appendChild(div);
+                        });
+                    } catch (e) {
+                        console.error(e);
+                        list.innerHTML = '<div style="padding:10px; text-align:center;">Errore rete</div>';
+                    }
+                },
+                debouncedSearch: null 
+            },
+
+            // --- NUOVO MODULO: CHART.JS ---
             chart: {
                 init: () => {
                     const ctx = document.getElementById('profitChart').getContext('2d');
-                    Chart.defaults.color = '#94a3b8'; // Colore testo default (Tailwind Slate-400)
+                    Chart.defaults.font.family = "'Inter', sans-serif";
+                    Chart.defaults.color = '#94a3b8';
                     
                     state.chartInstance = new Chart(ctx, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Utile Netto', 'Commissioni OTA', 'Tasse (Cedolare)', 'Costi Operativi'],
+                            labels: ['Utile Netto', 'Commissioni OTA', 'Tasse', 'Costi Operativi'],
                             datasets: [{
                                 data: [0, 0, 0, 0],
-                                backgroundColor: [
-                                    '#10b981', // Verde (Utile)
-                                    '#f59e0b', // Arancio (OTA)
-                                    '#ef4444', // Rosso (Tasse)
-                                    '#3b82f6'  // Blu (Costi)
-                                ],
+                                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
                                 borderWidth: 0,
                                 hoverOffset: 4
                             }]
@@ -472,15 +506,13 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            cutout: '70%', // Spessore ciambella
+                            cutout: '70%',
                             plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        padding: 20,
-                                        usePointStyle: true,
-                                        pointStyle: 'circle'
-                                    }
+                                legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
+                                tooltip: { 
+                                    callbacks: { 
+                                        label: (ctx) => ` ${ctx.label}: ${ctx.raw.toLocaleString('it-IT', {style:'currency', currency:'EUR'})}` 
+                                    } 
                                 }
                             }
                         }
@@ -488,11 +520,7 @@
                 },
                 update: (rev, ota, taxes, costs, net) => {
                     if (!state.chartInstance) return;
-                    
-                    // Se l'utile è negativo, mostriamolo come 0 nel grafico per evitare errori visivi
-                    // ma i calcoli numerici rimangono corretti
-                    const netVisual = net < 0 ? 0 : net;
-                    
+                    const netVisual = net < 0 ? 0 : net; // Evita glitch grafici con numeri negativi
                     state.chartInstance.data.datasets[0].data = [netVisual, ota, taxes, costs];
                     state.chartInstance.update();
                 }
@@ -503,33 +531,31 @@
                 format: (n) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }),
                 update: () => {
                     const c = app.calc;
-                    
-                    // Recupero Valori
                     const adr = c.getVal('adr');
                     const occPerc = c.getVal('occ') / 100;
-                    const portalCommPerc = c.getVal('portal-comm') / 100;
-                    const taxRatePerc = c.getVal('tax-rate') / 100;
-                    const varCosts = c.getVal('var-costs');
-                    const fixedCosts = c.getVal('fixed-costs');
-
-                    // Calcolo Finanziario Base
                     const nights = 365 * occPerc;
-                    const totalRev = adr * nights;
+                    const totalRev = adr * nights; // Ricavo Lordo Annuo
+
+                    // Calcolo Voci di Costo (Annuali)
+                    const otaCost = totalRev * (c.getVal('portal-comm') / 100);
+                    // Tassa soggiorno è extra ADR solitamente, ma qui la semplifichiamo come costo se inclusa o costo passante
+                    // Per purezza, calcoliamo le tasse sul reddito:
+                    const taxableBase = totalRev * (1 - (c.getVal('portal-comm')/100)); // Base imponibile approx
+                    const taxCost = taxableBase * (c.getVal('tax-rate') / 100);
                     
-                    // Calcolo Segmenti Grafico (Annuali)
-                    const otaCost = totalRev * portalCommPerc;
-                    const taxCost = totalRev * taxRatePerc;
-                    const operatingCosts = (varCosts * nights) + (fixedCosts * 12);
+                    const varCostsTotal = c.getVal('var-costs') * nights;
+                    const fixedCostsTotal = c.getVal('fixed-costs') * 12;
+                    const operatingCosts = varCostsTotal + fixedCostsTotal + (c.getVal('city-tax') * nights); // Aggiungiamo city tax ai costi operativi
+
                     const netAnnual = totalRev - otaCost - taxCost - operatingCosts;
-
-                    // KPI Display
                     const molMonthly = netAnnual / 12;
-                    const netNight = adr * (1 - portalCommPerc - taxRatePerc) - varCosts;
+                    const netNight = netAnnual / nights; // Utile medio a notte venduta
 
+                    // Update UI
                     document.getElementById('res-mol-month').textContent = c.format(molMonthly);
-                    document.getElementById('res-net-night').textContent = c.format(netNight);
+                    document.getElementById('res-net-night').textContent = isFinite(netNight) ? c.format(netNight) : "0 €";
 
-                    // Aggiornamento Grafico
+                    // Update Chart
                     app.chart.update(totalRev, otaCost, taxCost, operatingCosts, netAnnual);
 
                     // Calcolo PRO (Mutuo)
@@ -556,7 +582,6 @@
                                 const d = await ref.get();
                                 if (d.exists) app.ui.setProStatus(d.data().plan === 'pro');
                                 else {
-                                    // Nuovo utente
                                     await ref.set({ email: u.email, plan: 'free', joined: firebase.firestore.FieldValue.serverTimestamp() });
                                     app.ui.setProStatus(false);
                                 }
@@ -588,6 +613,9 @@
                     
                     const inputs = {};
                     Object.keys(VALIDATION).forEach(k => inputs[k] = document.getElementById(k).value);
+                    // Aggiungi indirizzo ai dati salvati
+                    inputs['geo-search'] = document.getElementById('geo-search').value;
+
                     const payload = { uid: state.user.uid, name: document.getElementById('project-name').value, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), inputs };
                     
                     if (state.currentDocId) await db.collection('projects').doc(state.currentDocId).update(payload);
@@ -711,13 +739,23 @@
         };
 
         app.calc.debouncedUpdate = app.utils.debounce(app.calc.update, 300);
+        app.geo.debouncedSearch = app.utils.debounce(app.geo.search, 500);
 
         document.addEventListener('DOMContentLoaded', () => {
             app.auth.init();
             app.validate.bind();
-            // INIZIALIZZAZIONE GRAFICO PRIMA DELL'UPDATE
             app.chart.init(); 
             app.calc.update();
+            
+            // Listeners Geo
+            const geoInput = document.getElementById('geo-search');
+            geoInput.addEventListener('input', (e) => app.geo.debouncedSearch(e.target.value));
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#geo-search') && !e.target.closest('#geo-results')) {
+                    app.ui.toggleElement('geo-results', false);
+                }
+            });
+
             document.addEventListener('keydown', (e) => { if(e.key==='Escape') document.querySelectorAll('.modal-backdrop').forEach(m=>m.classList.remove('active')); });
         });
     </script>
