@@ -17,15 +17,26 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* --- STILI CSS (Invariati per compatibilità) --- */
-        :root { --bg-body: #0f172a; --bg-card: #1e293b; --bg-input: #020617; --primary: #10b981; --primary-hover: #059669; --danger: #ef4444; --warning: #f59e0b; --info: #3b82f6; --text-main: #f8fafc; --text-muted: #94a3b8; --border: #334155; --radius: 8px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* --- CORE VARIABLES & RESET --- */
+        :root {
+            --bg-body: #0f172a; --bg-card: #1e293b; --bg-input: #020617;
+            --primary: #10b981; --primary-hover: #059669; 
+            --danger: #ef4444; --warning: #f59e0b; --info: #3b82f6;
+            --text-main: #f8fafc; --text-muted: #94a3b8;
+            --border: #334155; --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; font-size: 16px; line-height: 1.5; overflow-x: hidden; }
+
+        /* --- UI COMPONENTS --- */
         header { background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px); }
         .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; user-select: none; }
         .logo span { color: white; letter-spacing: -0.02em; }
         .user-menu { display: flex; align-items: center; gap: 1rem; }
+
         .btn { padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border); background: var(--bg-card); color: white; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition); user-select: none; }
         .btn:hover { background: var(--border); transform: translateY(-1px); }
         .btn:active { transform: translateY(0); }
@@ -34,37 +45,55 @@
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-danger { background: rgba(239, 68, 68, 0.1); border-color: var(--danger); color: var(--danger); }
         .btn-admin { position: fixed; bottom: 20px; left: 20px; z-index: 90; background: var(--warning); color: #000; border: none; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); font-weight: 800; }
+
         .plan-badge { font-size: 0.7rem; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 700; background: var(--border); color: var(--text-muted); letter-spacing: 0.05em; }
         .plan-badge.pro { background: var(--primary); color: black; box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+
         .toolbar { max-width: 1400px; margin: 2rem auto 0; padding: 0 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .project-input { background: transparent; border: none; border-bottom: 1px solid var(--border); color: white; font-size: 1.25rem; font-weight: 600; width: 300px; padding: 0.5rem 0; transition: var(--transition); }
         .project-input:focus { border-color: var(--primary); }
+
         main { padding: 2rem 1rem; max-width: 1400px; margin: 0 auto; width: 100%; flex: 1; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; }
+
         .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; overflow: visible; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: border-color 0.3s; }
         .card:hover { border-color: rgba(51, 65, 85, 0.8); }
         .card-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .step-circle { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: black; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        
         .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
         .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
         label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
         input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: white; padding: 0.75rem; border-radius: 6px; font-size: 0.95rem; transition: var(--transition); font-family: inherit; }
         input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); }
         input.invalid { border-color: var(--danger) !important; animation: shake 0.3s; }
-        @keyframes flash-update { 0% { background-color: var(--primary); box-shadow: 0 0 15px var(--primary); color: black; } 100% { background-color: var(--bg-input); color: white; } }
+        
+        /* Animazione Flash per aggiornamento automatico */
+        @keyframes flash-update { 
+            0% { background-color: var(--primary); box-shadow: 0 0 15px var(--primary); color: black; } 
+            100% { background-color: var(--bg-input); color: white; } 
+        }
         .input-updated { animation: flash-update 2s cubic-bezier(0.22, 1, 0.36, 1); }
+
         .kpi-container { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
         .kpi-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
         .kpi-value { font-size: 1.25rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+
         .locked-blur { filter: blur(6px); pointer-events: none; opacity: 0.5; transition: var(--transition); }
         .overlay-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; opacity: 1; transition: opacity 0.5s ease; text-align: center; border-radius: 12px; }
         .is-unlocked .locked-blur { filter: none; pointer-events: auto; opacity: 1; }
         .is-unlocked .overlay-lock { opacity: 0; pointer-events: none; visibility: hidden; }
+
+        /* CHART CONTAINER */
         .chart-wrapper { margin-top: 1.5rem; position: relative; height: 250px; width: 100%; }
+
+        /* DROPDOWN RICERCA GEO */
         .dropdown-menu { position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 0 0 8px 8px; z-index: 100; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
         .dropdown-item { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-muted); transition: all 0.2s; }
         .dropdown-item:hover { background: var(--primary); color: black; font-weight: 600; }
         .dropdown-item:last-child { border-bottom: none; }
+
+        /* REVIEWS & CONTACT */
         .reviews-section { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
         .reviews-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: white; }
         .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
@@ -74,6 +103,7 @@
         .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--border); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; }
         .stars { color: #f59e0b; font-size: 0.8rem; margin-bottom: 0.5rem; }
         .review-text { font-size: 0.9rem; color: var(--text-muted); font-style: italic; line-height: 1.6; flex-grow: 1; }
+
         .contact-section { margin-top: 4rem; padding: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
         .contact-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: white; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
         .contact-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -81,19 +111,25 @@
         .checkbox-wrapper { display: flex; align-items: start; gap: 0.8rem; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
         .checkbox-wrapper input { width: auto; margin-top: 3px; cursor: pointer; }
         .privacy-link { color: var(--primary); text-decoration: underline; cursor: pointer; }
+
+        /* OVERLAYS & MODALS */
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #loading-overlay.active { opacity: 1; pointer-events: auto; }
         .spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-bottom-color: var(--primary); border-radius: 50%; animation: rotation 1s linear infinite; margin-bottom: 1rem; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .toast { pointer-events: auto; background: var(--bg-card); border-left: 4px solid var(--primary); color: white; padding: 1rem 1.5rem; border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.3s; min-width: 300px; }
         .toast.show { transform: translateX(0); }
         .toast.error { border-left-color: var(--danger); }
+
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-backdrop.active { opacity: 1; pointer-events: auto; }
         .modal-panel { background: var(--bg-card); border: 1px solid var(--border); width: 90%; max-width: 550px; border-radius: 12px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s; max-height: 85vh; overflow-y: auto; }
         .modal-backdrop.active .modal-panel { transform: translateY(0); }
+        
+        /* ADMIN UI */
         .admin-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
         .admin-tab { padding: 0.8rem 1.5rem; cursor: pointer; color: var(--text-muted); font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.2s; flex: 1; text-align: center; }
         .admin-tab.active { color: var(--warning); border-bottom-color: var(--warning); }
@@ -106,6 +142,7 @@
         .deal-list, .user-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-top:1rem; }
         .deal-row, .user-row { display: flex; justify-content: space-between; padding: 0.8rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .deal-row:hover, .user-row:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
+
         .hidden { display: none !important; }
         @media (max-width: 768px) { .contact-form { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
     </style>
@@ -156,7 +193,10 @@
 
                 <div class="input-grid">
                     <div class="form-group"><label>ADR Medio (€)</label><input type="number" id="adr" value="120" oninput="app.calc.debouncedUpdate()"></div>
-                    <div class="form-group"><label>Tassa Soggiorno (€)</label><input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()" style="transition: background-color 0.3s;"></div>
+                    <div class="form-group">
+                        <label>Tassa Soggiorno (€)</label>
+                        <input type="number" id="city-tax" value="4" oninput="app.calc.debouncedUpdate()" style="transition: background-color 0.3s;">
+                    </div>
                 </div>
                 <div class="input-grid">
                     <div class="form-group"><label>Commissioni OTA (%)</label><input type="number" id="portal-comm" value="18" oninput="app.calc.debouncedUpdate()"></div>
@@ -402,35 +442,7 @@
                 }
             },
 
-            // --- ECCO IL PEZZO MANCANTE (VALIDATE) ---
-            validate: {
-                checkField: (id) => {
-                    const el = document.getElementById(id);
-                    if (!el || el.value === '') return true;
-                    const val = parseFloat(el.value);
-                    const rule = VALIDATION[id];
-                    // Protezione contro ID non presenti nella mappa validation
-                    if (!rule) return true; 
-                    const isValid = !isNaN(val) && val >= rule.min && val <= rule.max;
-                    el.classList.toggle('invalid', !isValid);
-                    return isValid;
-                },
-                all: () => {
-                    let valid = true;
-                    Object.keys(VALIDATION).forEach(k => {
-                        const el = document.getElementById(k);
-                        if (el && (el.value === '' || !app.validate.checkField(k))) {
-                            el.classList.add('invalid');
-                            valid = false;
-                        }
-                    });
-                    if (!valid) app.ui.showToast("Controlla i campi evidenziati in rosso.", 'error');
-                    return valid;
-                },
-                bind: () => document.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('blur', () => app.validate.checkField(i.id)))
-            },
-
-            // --- GEO SEARCH (VERSIONE CORRETTA) ---
+            // --- GEO SEARCH (HARDENED LOGIC) ---
             geo: {
                 search: async (query) => {
                     if (query.length < 3) return;
@@ -452,6 +464,8 @@
                         data.forEach(item => {
                             const div = document.createElement('div');
                             div.className = 'dropdown-item';
+                            
+                            // Visualizzazione User Friendly
                             const city = item.address.city || item.address.town || item.address.village || item.address.municipality || '';
                             const road = item.address.road || '';
                             const number = item.address.house_number || '';
@@ -463,33 +477,40 @@
                                 document.getElementById('geo-search').value = div.textContent;
                                 app.ui.toggleElement('geo-results', false);
                                 
-                                const CITY_RATES = {
-                                    'milano': 4.5, 'roma': 6.0, 'firenze': 5.5, 'venezia': 5.0,
-                                    'napoli': 3.0, 'torino': 2.8, 'bologna': 3.0, 'rimini': 2.5,
-                                    'verona': 3.5, 'palermo': 2.0
-                                };
+                                // --- LOGICA ROBUSTA "NO FALSE POSITIVES" ---
+                                // 1. Crea una lista di soli campi geografici "contenitore" (Città, Comune, Provincia)
+                                // 2. ESCLUDE esplicitamente via, strada, numero civico per evitare "Via Roma, Torino" -> "Roma"
+                                const addr = item.address || {};
+                                const locationFields = [
+                                    addr.city, 
+                                    addr.town, 
+                                    addr.village, 
+                                    addr.municipality,
+                                    addr.county, 
+                                    addr.state_district
+                                ].map(field => (field || '').toLowerCase());
 
-                                let foundRate = null;
-                                let foundCityName = "";
-                                const addressText = (item.address.city || item.address.town || item.address.village || item.address.municipality || item.display_name).toLowerCase();
+                                // Funzione helper per cercare nei campi validi
+                                const isCity = (target) => locationFields.some(field => field.includes(target));
 
-                                for (const [cityName, rate] of Object.entries(CITY_RATES)) {
-                                    if (addressText.includes(cityName)) {
-                                        foundRate = rate;
-                                        foundCityName = cityName;
-                                        break; 
-                                    }
-                                }
+                                const taxInput = document.getElementById('city-tax');
+                                let newVal = null;
 
-                                if(foundRate !== null) {
-                                    const taxInput = document.getElementById('city-tax');
-                                    taxInput.value = foundRate;
-                                    const cityCap = foundCityName.charAt(0).toUpperCase() + foundCityName.slice(1);
-                                    app.ui.showToast(`Tassa aggiornata per ${cityCap} (${foundRate}€)`, 'success');
+                                if(isCity('milano')) newVal = 4.5;
+                                else if(isCity('roma')) newVal = 6.0;
+                                else if(isCity('firenze')) newVal = 5.5;
+                                else if(isCity('napoli')) newVal = 3.0;
+                                else if(isCity('venezia')) newVal = 5.0;
+
+                                if(newVal !== null) {
+                                    taxInput.value = newVal;
+                                    app.ui.showToast(`Tassa aggiornata automaticamente!`, 'success');
+                                    // Feedback Visivo
                                     taxInput.classList.remove('input-updated');
                                     void taxInput.offsetWidth; 
                                     taxInput.classList.add('input-updated');
                                 }
+
                                 app.calc.update();
                             };
                             list.appendChild(div);
