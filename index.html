@@ -313,7 +313,7 @@
                         </button>
                         <div id="ai-response-container">
                             <div class="ai-box">
-                                <h4><i class="fa-brands fa-google"></i> Analisi Gemini Pro</h4>
+                                <h4><i class="fa-brands fa-google"></i> Analisi Gemini AI</h4>
                                 <div id="ai-content" class="ai-content"></div>
                             </div>
                         </div>
@@ -420,6 +420,7 @@
     <div id="modal-deals" class="modal-backdrop"><div class="modal-panel"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;"><h2>Archivio Asset e Deal</h2><button class="btn" onclick="app.ui.closeModal('modal-deals')"><i class="fa-solid fa-xmark"></i></button></div><div id="deals-container" class="deal-list"></div></div></div>
     <div id="modal-amortization" class="modal-backdrop"><div class="modal-panel" style="max-width: 1000px;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;"><h2>Piano di Ammortamento Francese</h2><button class="btn" onclick="app.ui.closeModal('modal-amortization')"><i class="fa-solid fa-xmark"></i></button></div><div style="overflow-x: auto;"><table class="amortization-table"><thead><tr><th>Periodo</th><th>Quota Interessi</th><th>Quota Capitale</th><th>Debito Residuo</th></tr></thead><tbody id="amortization-body"></tbody></table></div></div></div>
     <div id="modal-admin" class="modal-backdrop"><div class="modal-panel"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;"><h2>Console Amministrazione Globale</h2><button class="btn" onclick="app.ui.closeModal('modal-admin')"><i class="fa-solid fa-xmark"></i></button></div><div class="admin-tabs"><div class="admin-tab active" onclick="app.admin.switchTab(event, 'personal')">Il Mio Profilo</div><div class="admin-tab" onclick="app.admin.switchTab(event, 'stats')">Business Analytics</div><div class="admin-tab" onclick="app.admin.switchTab(event, 'users')">Anagrafica Partner</div></div><div id="tab-personal" class="admin-content active"><div style="background: rgba(255,255,255,0.03); padding: 2rem; border-radius: 16px; border: 1px solid var(--border);"><h3>Strumenti Debug</h3><br><div style="display: flex; gap: 1.5rem;"><button class="btn btn-primary" onclick="app.admin.toggleMyPlan()">Simula Abbonamento PRO</button><button class="btn btn-danger" onclick="app.admin.clearMyData()">Reset Database Locale</button></div></div></div><div id="tab-stats" class="admin-content"><div class="input-grid"><div class="kpi-container" style="flex-direction: column; align-items: flex-start;"><span class="kpi-title">Utenti Totali Registrati</span><span class="kpi-value" id="stat-users">--</span></div><div class="kpi-container" style="flex-direction: column; align-items: flex-start;"><span class="kpi-title">Account PRO Attivi</span><span class="kpi-value" id="stat-pro">--</span></div></div><button class="btn" onclick="app.admin.refreshStats()" style="width: 100%; margin-top: 2rem; justify-content: center;">Sincronizza Statistiche Globali</button></div><div id="tab-users" class="admin-content"><div id="admin-users-list" class="deal-list" style="max-height: 55vh; overflow-y: auto;"></div></div></div></div>
+    
     <button id="admin-trigger" class="btn btn-admin hidden" onclick="app.ui.openModal('modal-admin')">ADMIN CONSOLE</button>
 
     <script>
@@ -450,7 +451,7 @@
             stripeLink: "https://buy.stripe.com/test_4gM8wP85i5I0flc0PygjC01",
             gemini: { 
                 apiKey: "AIzaSyAWRomdbRlKQ2reU6lsNOHNrvxB3JKxk6Y", 
-                model: "gemini-3-pro-preview"
+                model: "gemini-1.5-flash"
             }
         };
 
